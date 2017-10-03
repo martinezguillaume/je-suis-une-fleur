@@ -1,0 +1,27 @@
+{
+	"name": "je-suis-une-fleur",
+	"version": "0.0.0",
+	"description": "Nous sommes tous des fleurs.",
+	"author": "guizmo",
+	"private": true,
+	"main": "node_modules/expo/AppEntry.js",
+	"scripts": {
+		"postinstall": "rndebugger-open --expo"
+	},
+	"dependencies": {
+		"expo": "^21.0.0",
+		"react": "16.0.0-alpha.12",
+		"react-native": "https://github.com/expo/react-native/archive/sdk-21.0.2.tar.gz",
+		"react-native-elements": "^0.17.0",
+		"react-navigation": "^1.0.0-beta.13"
+	},
+	"devDependencies": {
+		"eslint": "^4.8.0",
+		"eslint-config-expo": "^6.0.0",
+		"prettier": "^1.7.4",
+		"react-native-debugger-open": "^0.3.12"
+	},
+	"eslintConfig": {
+		"extends": "expo/native"
+	}
+}
