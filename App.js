@@ -1,11 +1,11 @@
-import React from 'react'
+import React from 'react';
 
-import Root from './src/navigation'
+import Root from './src/navigation';
 
-console.disableYellowBox = true
+console.disableYellowBox = true;
 
 export default class App extends React.PureComponent {
-	render() {
-		return <Root />
-	}
+  render() {
+    return <Root />;
+  }
 }
