@@ -1,11 +1,21 @@
 import React from 'react';
+import { UIManager } from 'react-native';
+import { Provider } from 'react-redux';
+import store from './src/store';
 
-import Root from './src/navigation';
+import Root from './src';
 
 console.disableYellowBox = true;
 
-export default class App extends React.PureComponent {
+UIManager.setLayoutAnimationEnabledExperimental &&
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+
+export default class App extends React.Component {
   render() {
-    return <Root />;
+    return (
+      <Provider store={store}>
+        <Root />
+      </Provider>
+    );
   }
 }
