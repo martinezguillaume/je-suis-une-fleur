@@ -7,11 +7,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   title: {
-    fontFamily: 'Rubik-Light',
+    fontFamily: 'OpenSans-Light',
     paddingBottom: 8,
   },
   subtitle: {
-    fontFamily: 'Rubik-Regular',
+    fontFamily: 'OpenSans-Regular',
     color: 'rgba(0, 0, 0, 0.54)',
   },
   centerContainer: {

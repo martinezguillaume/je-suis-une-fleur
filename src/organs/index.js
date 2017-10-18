@@ -1,10 +1,13 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { Avatar } from 'react-native-elements';
 import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import values from 'lodash/values';
 
-import ListItem from '../components/ListItem';
+import { withRequesters } from '../modules/decorators';
 import { WIDTH } from '../theme';
+
+import * as OrgansActionCreators from './actions';
 
 const styles = StyleSheet.create({
   container: {
@@ -18,17 +21,33 @@ const styles = StyleSheet.create({
   },
 });
 
-@connect(({ organs: { list } }, { navigation }) => ({
-  organ: list[navigation.state.params.name],
-  navigation,
-}))
+@connect(
+  ({ organs: { list } }, { navigation }) => {
+    const { state: { params: { name } } } = navigation;
+    const organ = list[name];
+    return {
+      cover: !organ
+        ? null
+        : organ.images
+          ? organ.images[0].m_url
+          : organ.imgs ? values(organ.imgs)[0][0].full_img : null,
+      organ: organ || { name },
+    };
+  },
+  dispatch => bindActionCreators(OrgansActionCreators, dispatch)
+)
+@withRequesters({
+  organ: ({ requestOrgan, organ }) => requestOrgan(organ),
+})
 export default class Organ extends React.PureComponent {
   render() {
-    const { organ: { images, name } } = this.props;
-    const image = images[0];
+    const { organ: { imgs, name, isValid, isLoading }, cover } = this.props;
+    if (!isValid || isLoading) {
+      return <View />;
+    }
     return (
       <View>
-        <Image style={styles.header} source={image && { uri: image.m_url }} resizeMode="cover" />
+        <Image style={styles.header} source={cover && { uri: cover }} resizeMode="cover" />
       </View>
     );
   }

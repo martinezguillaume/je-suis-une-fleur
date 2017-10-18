@@ -1,5 +1,5 @@
-export const setOrgan = organ => ({
-  type: 'setOrgan',
+export const setCameraOrgan = organ => ({
+  type: 'setCameraOrgan',
   organ,
 });
 

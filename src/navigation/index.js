@@ -1,9 +1,11 @@
-import { StackNavigator } from 'react-navigation';
+import React from 'react';
+import { StackNavigator, addNavigationHelpers } from 'react-navigation';
+import { connect } from 'react-redux';
 
 import Camera from '../camera';
 import Organ from '../organs';
 
-export default StackNavigator(
+export const AppNavigator = StackNavigator(
   {
     Camera: { screen: Camera },
     Organ: { screen: Organ },
@@ -13,3 +15,18 @@ export default StackNavigator(
     headerMode: 'none',
   }
 );
+
+@connect(({ nav }) => ({ nav }))
+export default class Root extends React.PureComponent {
+  render() {
+    const { dispatch, nav: state } = this.props;
+    return (
+      <AppNavigator
+        navigation={addNavigationHelpers({
+          dispatch,
+          state,
+        })}
+      />
+    );
+  }
+}

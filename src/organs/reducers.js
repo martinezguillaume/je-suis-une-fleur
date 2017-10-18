@@ -6,12 +6,42 @@ const initialState = {
   list: {},
 };
 
+const homogenize = ({ fam, ...organ }) => ({
+  ...organ,
+  family: fam,
+});
+
 function list(state = initialState.list, action) {
   switch (action.type) {
+    case 'setOrgan': {
+      const { organ } = action;
+      const { name } = organ;
+      return {
+        ...state,
+        [name]: {
+          ...state[name],
+          ...organ,
+          isLoading: false,
+          isValid: true,
+        },
+      };
+    }
+    case 'readOrgan': {
+      const { name } = action.organ;
+      return {
+        ...state,
+        [name]: {
+          ...state[name],
+          isLoading: true,
+          isValid: false,
+          name,
+        },
+      };
+    }
     case 'setOrgansResults':
       return {
         ...state,
-        ...fromPairs(map(action.results, organ => [organ.name, organ])),
+        ...fromPairs(map(action.results, organ => [organ.name, { ...homogenize(organ) }])),
       };
     default:
       return state;

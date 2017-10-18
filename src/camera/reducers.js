@@ -8,7 +8,7 @@ const initialState = {
 
 function organ(state = initialState.organ, action) {
   switch (action.type) {
-    case 'setOrgan':
+    case 'setCameraOrgan':
       return action.organ;
     default:
       return state;

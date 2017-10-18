@@ -16,7 +16,7 @@ window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ &&
 const configureStore = () => {
   const reducers = (state, action) => {
     switch (action.type) {
-      case 'setOrgan':
+      case 'setCameraOrgan':
       case 'setOrgansVisible':
       case 'setOrgansResults':
       case 'addPicture':
@@ -30,7 +30,7 @@ const configureStore = () => {
 
   const store = createStore(reducers, undefined, middleware);
 
-  persistStore(store, { storage: AsyncStorage });
+  persistStore(store, { storage: AsyncStorage, whitelist: ['nav'] });
 
   return store;
 };

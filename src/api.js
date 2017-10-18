@@ -1,7 +1,6 @@
 import axios from 'axios';
-import qs from 'qs';
 
-const API_URL = 'https://identify.plantnet-project.org/api';
+const API_URL = 'https://identify.plantnet-project.org/api/';
 
 const getFilenameFromUri = uri => uri.split('/').pop();
 
@@ -27,13 +26,13 @@ const getFileFormData = file => {
 export default {
   picture: {
     upload: picture =>
-      axios.post(`${API_URL}/mupload`, getFileFormData(picture), {
+      axios.post(`${API_URL}mupload`, getFileFormData(picture), {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       }),
     identify: ({ imgs, tags }) =>
-      axios.get(`${API_URL}/project/useful/identify`, {
+      axios.get(`${API_URL}project/useful/identify`, {
         params: {
           imgs,
           tags,
@@ -42,5 +41,8 @@ export default {
           app_version: 'web-1.0.0',
         },
       }),
+  },
+  organ: {
+    details: name => axios.get(`${API_URL}project/useful/get_species_details/${name}/fr`),
   },
 };

@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   resultText: {
     backgroundColor: 'transparent',
     color: 'white',
-    fontFamily: 'Rubik-Light',
+    fontFamily: 'OpenSans-Light',
     alignSelf: 'flex-end',
     paddingLeft: 32,
     paddingBottom: 4,

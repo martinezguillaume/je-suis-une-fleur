@@ -63,14 +63,14 @@ const ORGANS = ['flower', 'fruit', 'leaf', 'habit'];
 
 class OrgansListComponent extends React.PureComponent {
   render() {
-    const { setOrgan, setOrgansVisible } = this.props;
+    const { setCameraOrgan, setOrgansVisible } = this.props;
     return (
       <View style={styles.organsContainer}>
         {map(ORGANS, organ => (
           <TouchableOpacity
             key={organ}
             onPress={() => {
-              setOrgan(organ);
+              setCameraOrgan(organ);
               setOrgansVisible(false);
             }}
             style={styles.organContainer}>
