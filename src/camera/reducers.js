@@ -3,6 +3,7 @@ import { combineReducers } from 'redux';
 const initialState = {
   organ: 'flower',
   organsVisible: false,
+  selectedPicture: null,
 };
 
 function organ(state = initialState.organ, action) {
@@ -13,6 +14,7 @@ function organ(state = initialState.organ, action) {
       return state;
   }
 }
+
 function organsVisible(state = initialState.organsVisible, action) {
   switch (action.type) {
     case 'setOrgansVisible':
@@ -22,7 +24,17 @@ function organsVisible(state = initialState.organsVisible, action) {
   }
 }
 
+function selectedPicture(state = initialState.selectedPicture, action) {
+  switch (action.type) {
+    case 'setSelectedPicture':
+      return action.selectedPicture;
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   organ,
   organsVisible,
+  selectedPicture,
 });

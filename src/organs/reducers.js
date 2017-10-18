@@ -11,7 +11,7 @@ function list(state = initialState.list, action) {
     case 'setOrgansResults':
       return {
         ...state,
-        ...fromPairs(map(action.result.results, organ => [organ.name, organ])),
+        ...fromPairs(map(action.results, organ => [organ.name, organ])),
       };
     default:
       return state;

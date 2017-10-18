@@ -1,13 +1,15 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, FlatList, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, TouchableOpacity, FlatList, View } from 'react-native';
 import { Permissions, Camera as ExpoCamera } from 'expo';
-import { EvilIcons } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import map from 'lodash/map';
+import reverse from 'lodash/reverse';
 
 import OrganIcon from '../components/OrganIcon';
 import Picture from '../components/Picture';
+import PictureResult from '../pictures/modalresults';
 
 import * as picturesActionCreators from '../pictures/actions';
 import * as cameraActionCreators from '../camera/actions';
@@ -17,17 +19,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  modalContainer: {
+    flex: 1,
+    paddingLeft: 32,
+    paddingRight: 32,
+    paddingTop: 50,
+    paddingBottom: 50,
+  },
   cameraContainer: {
     height: HEIGHT,
     justifyContent: 'flex-end',
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-around',
   },
-  picturesContainer: {
-    backgroundColor: 'blue',
-  },
+  picturesContainer: {},
   cameraButton: {
     backgroundColor: 'transparent',
-    margin: 8,
+    padding: 8,
+  },
+  selectedOrgan: {
+    position: 'absolute',
+    padding: 8,
+    bottom: 14,
+    left: 16,
   },
   organsContainer: {
     flexDirection: 'row',
@@ -44,7 +61,7 @@ const styles = StyleSheet.create({
 
 const ORGANS = ['flower', 'fruit', 'leaf', 'habit'];
 
-class OrgansList extends React.PureComponent {
+class OrgansListComponent extends React.PureComponent {
   render() {
     const { setOrgan, setOrgansVisible } = this.props;
     return (
@@ -65,25 +82,28 @@ class OrgansList extends React.PureComponent {
   }
 }
 
-const ConnectedOrgansList = connect(
+const OrgansList = connect(
   ({ camera: { organ, organsVisible } }) => ({
     organ,
     organsVisible,
   }),
   dispatch => bindActionCreators(cameraActionCreators, dispatch)
-)(OrgansList);
+)(OrgansListComponent);
 
-class PicturesList extends React.PureComponent {
+class PicturesListComponent extends React.PureComponent {
   render() {
-    const { pictures } = this.props;
+    const { pictures, setSelectedPicture } = this.props;
     return (
       <FlatList
         keyExtractor={item => item.uri}
-        data={pictures.list}
+        data={reverse([...pictures.list])}
         showsHorizontalScrollIndicator={false}
         horizontal
         renderItem={({ item }) => (
-          <TouchableOpacity key={item.uri} onPress={() => {}} style={styles.organContainer}>
+          <TouchableOpacity
+            key={item.uri}
+            onPress={() => setSelectedPicture(item.id)}
+            style={styles.organContainer}>
             <Picture picture={item} />
           </TouchableOpacity>
         )}
@@ -92,9 +112,12 @@ class PicturesList extends React.PureComponent {
   }
 }
 
-const ConnectedPicturesList = connect(({ pictures }) => ({
-  pictures,
-}))(PicturesList);
+const PicturesList = connect(
+  ({ pictures }) => ({
+    pictures,
+  }),
+  dispatch => bindActionCreators(cameraActionCreators, dispatch)
+)(PicturesListComponent);
 
 class Camera extends React.PureComponent {
   state = {
@@ -115,38 +138,50 @@ class Camera extends React.PureComponent {
   }
 
   onCameraPress() {
-    const { addPicture, fetchPictureResults, camera: { organ } } = this.props;
-    this.camera.takePictureAsync().then(result => {
-      const picture = { ...result, organ };
-      addPicture(picture);
-      fetchPictureResults(picture);
-    });
+    const { addPicture } = this.props;
+    this.camera.takePictureAsync().then(picture => addPicture(picture));
   }
 
   render() {
     const { hasCameraPermission } = this.state;
-    const { setOrgansVisible, camera: { organ, organsVisible } } = this.props;
+    const {
+      setOrgansVisible,
+      pictures,
+      camera: { organ, organsVisible, selectedPicture },
+      setSelectedPicture,
+    } = this.props;
 
     return !hasCameraPermission ? (
       <View />
     ) : (
       <ExpoCamera ref={ref => (this.camera = ref)} style={styles.container}>
+        <Modal
+          transparent
+          visible={selectedPicture != null}
+          animationType="fade"
+          onRequestClose={() => setSelectedPicture(null)}>
+          <View style={styles.modalContainer}>
+            <PictureResult picture={pictures.list[selectedPicture]} />
+          </View>
+        </Modal>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.cameraContainer}>
-            {!organsVisible && (
-              <TouchableOpacity
-                onPress={() => setOrgansVisible(true)}
-                style={styles.selectedOrganContainer}>
-                <OrganIcon organ={organ} />
+            <View style={styles.buttonsContainer}>
+              {!organsVisible && (
+                <TouchableOpacity
+                  onPress={() => setOrgansVisible(true)}
+                  style={styles.selectedOrgan}>
+                  <OrganIcon organ={organ} />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity onPress={this.onCameraPress} style={styles.cameraButton}>
+                <FontAwesome name="circle-thin" color="white" size={60} />
               </TouchableOpacity>
-            )}
-            <TouchableOpacity onPress={this.onCameraPress} style={styles.cameraButton}>
-              <EvilIcons name="camera" color="white" size={60} />
-            </TouchableOpacity>
-            {organsVisible && <ConnectedOrgansList />}
+            </View>
+            {organsVisible && <OrgansList />}
           </View>
           <View style={styles.picturesContainer}>
-            <ConnectedPicturesList />
+            <PicturesList />
           </View>
         </ScrollView>
       </ExpoCamera>
@@ -155,8 +190,9 @@ class Camera extends React.PureComponent {
 }
 
 export default connect(
-  ({ camera }) => ({
+  ({ camera, pictures }) => ({
     camera,
+    pictures,
   }),
   dispatch => bindActionCreators({ ...picturesActionCreators, ...cameraActionCreators }, dispatch)
 )(Camera);

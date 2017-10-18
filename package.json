@@ -18,7 +18,9 @@
     "react-native-elements": "https://github.com/react-native-training/react-native-elements.git#v1",
     "react-navigation": "^1.0.0-beta.13",
     "react-redux": "^5.0.6",
+    "recompose": "^0.26.0",
     "redux": "^3.7.2",
+    "redux-persist": "^4.10.1",
     "redux-thunk": "^2.2.0"
   },
   "devDependencies": {

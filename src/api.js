@@ -35,7 +35,7 @@ export default {
     identify: ({ imgs, tags }) =>
       axios.get(`${API_URL}/project/useful/identify`, {
         params: {
-          imgs: 'https://www.aquaportail.com/pictures1106/anemone-clown_1307889811-fleur.jpg',
+          imgs,
           tags,
           json: true,
           lang: 'fr',

@@ -1,12 +1,14 @@
-import { LayoutAnimation } from 'react-native';
+import { AsyncStorage, LayoutAnimation } from 'react-native';
 import thunk from 'redux-thunk';
 import applyMiddleware from 'redux/lib/applyMiddleware';
 import createStore from 'redux/lib/createStore';
+import { persistStore, autoRehydrate } from 'redux-persist';
+import compose from 'recompose/compose';
 
 import rootReducer from './reducers';
 import api from './api';
 
-let middleware = applyMiddleware(thunk.withExtraArgument(api));
+let middleware = compose(autoRehydrate(), applyMiddleware(thunk.withExtraArgument(api)));
 
 window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ &&
   (middleware = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__(middleware));
@@ -16,6 +18,7 @@ const configureStore = () => {
     switch (action.type) {
       case 'setOrgan':
       case 'setOrgansVisible':
+      case 'setOrgansResults':
       case 'addPicture':
         LayoutAnimation.easeInEaseOut();
         break;
@@ -26,6 +29,8 @@ const configureStore = () => {
   };
 
   const store = createStore(reducers, undefined, middleware);
+
+  persistStore(store, { storage: AsyncStorage });
 
   return store;
 };
