@@ -4,13 +4,10 @@ import { connect } from 'react-redux';
 
 import Camera from '../screens/camera';
 import Organ from '../screens/organ';
-import Wikipedia from '../screens/wikipedia';
-
 export const AppNavigator = StackNavigator(
   {
     Camera: { screen: Camera },
     Organ: { screen: Organ },
-    Wikipedia: { screen: Wikipedia },
   },
   {
     initialRouteName: 'Camera',

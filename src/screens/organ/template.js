@@ -1,15 +1,16 @@
 import React from 'react';
 import { Svg } from 'expo';
-import { Image, StyleSheet, Text, ScrollView, View } from 'react-native';
+import { LayoutAnimation, WebView, Image, StyleSheet, Text, ScrollView, View } from 'react-native';
+import { Button } from 'react-native-elements';
+import { EvilIcons } from '@expo/vector-icons';
 import map from 'lodash/map';
 import join from 'lodash/join';
-import Button from 'react-native-elements/example/v1/buttons/Button';
+import split from 'lodash/split';
 import SvgAnimatedLinearGradient from 'react-native-svg-animated-linear-gradient';
-import { withNavigation } from 'react-navigation';
 
 import TitleBox from '../../components/TitleBox';
 import IconList from '../../components/IconList';
-import { WIDTH, BACKGROUND_COLOR, SUBHEADING_COLOR, BODY_COLOR } from '../../theme';
+import { WIDTH, HEIGHT, BACKGROUND_COLOR, SUBHEADING_COLOR, BODY_COLOR } from '../../theme';
 
 const NameFamilySkeleton = (
   <SvgAnimatedLinearGradient height={14} width={100} x2="180%">
@@ -39,10 +40,24 @@ const formatTitle = array => {
   return `${join(array, ', ')} ou ${last}`;
 };
 
-@withNavigation
+const getWikipediaUrl = name => {
+  const splitName = split(name, ' ');
+  return `https://fr.wikipedia.org/wiki/${splitName[0]}_${splitName[1]}`;
+};
+
 export default class Organ extends React.PureComponent {
+  state = {
+    webviewOpen: false,
+  };
+
+  onMoreInfosPress = () => {
+    LayoutAnimation.easeInEaseOut();
+    this.setState({ webviewOpen: !this.state.webviewOpen });
+  };
+
   render() {
-    const { family, name, images, desc, cn, cover, navigation: { navigate } } = this.props;
+    const { family, name, images, desc, cn, cover } = this.props;
+    const { webviewOpen } = this.state;
     const CoverComponent = cover ? Image : View;
     return (
       <View flex={1} backgroundColor={BACKGROUND_COLOR}>
@@ -74,6 +89,18 @@ export default class Organ extends React.PureComponent {
             {!desc && SkeletonDescription}
           </TitleBox>
         </ScrollView>
+        <View style={[styles.webviewContainer, webviewOpen && styles.webviewOpen]}>
+          <WebView style={styles.webview} source={{ uri: getWikipediaUrl(name) }} />
+        </View>
+        <Button
+          textStyle={styles.moreInfos}
+          buttonStyle={[styles.moreInfosButton, webviewOpen && styles.moreInfosButtonClose]}
+          text={webviewOpen ? '' : "PLUS D'INFOS"}
+          icon={webviewOpen && <EvilIcons name="close" color="white" size={30} />}
+          onPress={this.onMoreInfosPress}
+          containerStyle={styles.moreInfosContainer}
+          linearGradientProps={{ colors: ['#64B5F6', '#2196F3'] }}
+        />
         <View style={styles.header}>
           {!cover ? (
             SkeletonCover
@@ -86,14 +113,6 @@ export default class Organ extends React.PureComponent {
           )}
           {cn && <Text style={styles.title}>{formatTitle(cn)}</Text>}
         </View>
-        <Button
-          textStyle={styles.moreInfos}
-          buttonStyle={styles.moreInfosButton}
-          text="PLUS D'INFOS"
-          onPress={() => navigate('Wikipedia', { name })}
-          containerStyle={styles.moreInfosContainer}
-          linearGradientProps={{ colors: ['#64B5F6', '#2196F3'] }}
-        />
       </View>
     );
   }
@@ -169,6 +188,9 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     width: 150,
   },
+  moreInfosButtonClose: {
+    width: 40,
+  },
   moreInfos: {
     fontFamily: 'OpenSans-Bold',
     fontSize: 12,
@@ -176,5 +198,17 @@ const styles = StyleSheet.create({
   photosContainer: {
     height: 200,
     paddingBottom: 0,
+  },
+  webviewContainer: {
+    top: HEIGHT,
+    position: 'absolute',
+    height: HEIGHT - 100,
+    width: WIDTH,
+  },
+  webviewOpen: {
+    top: 100,
+  },
+  webview: {
+    flex: 1,
   },
 });
