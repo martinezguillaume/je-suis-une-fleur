@@ -1,11 +1,9 @@
 import React from 'react';
-import { Image } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import values from 'lodash/values';
 
 import { withRequesters } from '../../modules/decorators';
-import { BoxSkeleton } from '../../components/Skeleton';
 import Template from './template';
 
 import * as OrgansActionCreators from '../../organs/actions';

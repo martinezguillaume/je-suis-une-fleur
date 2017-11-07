@@ -24,12 +24,6 @@ const SkeletonDescription = (
   </SvgAnimatedLinearGradient>
 );
 
-const SkeletonTitle = (
-  <SvgAnimatedLinearGradient height={20} width={150} x2="180%">
-    <Svg.Rect x="0" y="0" rx="5" ry="5" width={150} height="20" />
-  </SvgAnimatedLinearGradient>
-);
-
 const SkeletonCover = (
   <SvgAnimatedLinearGradient height={100} width={WIDTH} x2="180%">
     <Svg.Rect x="0" y="0" rx="0" ry="0" width={WIDTH} height="100" />
@@ -88,11 +82,7 @@ export default class Organ extends React.PureComponent {
               resizeMode="cover"
             />
           )}
-          {!cover && !cn ? null : !cn ? (
-            SkeletonTitle
-          ) : (
-            <Text style={styles.title}>{formatTitle(cn)}</Text>
-          )}
+          {cn && <Text style={styles.title}>{formatTitle(cn)}</Text>}
         </View>
         <Button
           textStyle={styles.moreInfos}
