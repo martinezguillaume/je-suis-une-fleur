@@ -2,8 +2,8 @@ import React from 'react';
 import { StackNavigator, addNavigationHelpers } from 'react-navigation';
 import { connect } from 'react-redux';
 
-import Camera from '../camera';
-import Organ from '../organs';
+import Camera from '../screens/camera';
+import Organ from '../screens/organ';
 
 export const AppNavigator = StackNavigator(
   {

@@ -37,16 +37,16 @@ export default () => {
     return rootReducer(state, action);
   };
 
-  const store = createStore(persistReducer(config, reducers), undefined, middleware);
-
-  const persistor = persistStore(store);
-
   if (module.hot) {
     module.hot.accept(() => {
       const nextRootReducer = require('./reducers').default;
       store.replaceReducer(nextRootReducer);
     });
   }
+
+  const store = createStore(persistReducer(config, reducers), undefined, middleware);
+
+  const persistor = persistStore(store);
 
   return { persistor, store };
 };
