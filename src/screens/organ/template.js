@@ -5,6 +5,7 @@ import map from 'lodash/map';
 import join from 'lodash/join';
 import Button from 'react-native-elements/example/v1/buttons/Button';
 import SvgAnimatedLinearGradient from 'react-native-svg-animated-linear-gradient';
+import { withNavigation } from 'react-navigation';
 
 import TitleBox from '../../components/TitleBox';
 import IconList from '../../components/IconList';
@@ -38,9 +39,10 @@ const formatTitle = array => {
   return `${join(array, ', ')} ou ${last}`;
 };
 
+@withNavigation
 export default class Organ extends React.PureComponent {
   render() {
-    const { family, name, images, desc, cn, cover } = this.props;
+    const { family, name, images, desc, cn, cover, navigation: { navigate } } = this.props;
     const CoverComponent = cover ? Image : View;
     return (
       <View flex={1} backgroundColor={BACKGROUND_COLOR}>
@@ -88,6 +90,7 @@ export default class Organ extends React.PureComponent {
           textStyle={styles.moreInfos}
           buttonStyle={styles.moreInfosButton}
           text="PLUS D'INFOS"
+          onPress={() => navigate('Wikipedia', { name })}
           containerStyle={styles.moreInfosContainer}
           linearGradientProps={{ colors: ['#64B5F6', '#2196F3'] }}
         />
@@ -131,6 +134,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 20,
     width: WIDTH,
+    paddingBottom: 2,
   },
   nameFamilyBoxContainer: {
     flexDirection: 'row',
