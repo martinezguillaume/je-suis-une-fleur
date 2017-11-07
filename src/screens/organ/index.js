@@ -32,7 +32,8 @@ export default class Organ extends React.PureComponent {
   render() {
     const { organ, cover } = this.props;
     const { cn, desc, family, name } = organ;
-    const CoverComponent = cover ? Image : BoxSkeleton;
-    return <Template desc={desc} images={organ.imgs} family={family} name={name} />;
+    return (
+      <Template cover={cover} cn={cn} desc={desc} images={organ.imgs} family={family} name={name} />
+    );
   }
 }

@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    // paddingBottom: 16,
+    paddingBottom: 16,
   },
   image: {
     width: IMAGE_WIDTH,
