@@ -20,7 +20,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalContainer: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingLeft: 32,
     paddingRight: 32,
     paddingTop: 50,
@@ -148,22 +152,12 @@ class Camera extends React.PureComponent {
       setOrgansVisible,
       pictures,
       camera: { organ, organsVisible, selectedPicture },
-      setSelectedPicture,
     } = this.props;
 
     return !hasCameraPermission ? (
       <View />
     ) : (
       <ExpoCamera ref={ref => (this.camera = ref)} style={styles.container}>
-        <Modal
-          transparent
-          visible={selectedPicture != null}
-          animationType="fade"
-          onRequestClose={() => setSelectedPicture(null)}>
-          <View style={styles.modalContainer}>
-            <PictureResult picture={pictures.list[selectedPicture]} />
-          </View>
-        </Modal>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.cameraContainer}>
             <View style={styles.buttonsContainer}>
@@ -184,6 +178,11 @@ class Camera extends React.PureComponent {
             <PicturesList />
           </View>
         </ScrollView>
+        {selectedPicture != null && (
+          <View style={styles.modalContainer}>
+            <PictureResult picture={pictures.list[selectedPicture]} />
+          </View>
+        )}
       </ExpoCamera>
     );
   }

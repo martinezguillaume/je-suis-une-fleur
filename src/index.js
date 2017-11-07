@@ -1,9 +1,7 @@
 import React from 'react';
 import { AppLoading, Font } from 'expo';
-import { connect } from 'react-redux';
 import Navigation from './navigation';
 
-@connect(({ storageLoaded }) => ({ storageLoaded }))
 export default class Root extends React.PureComponent {
   state = {
     fontsLoaded: false,
@@ -29,8 +27,6 @@ export default class Root extends React.PureComponent {
   }
 
   render() {
-    const { fontsLoaded } = this.state;
-    const { storageLoaded } = this.props;
-    return !fontsLoaded || !storageLoaded ? <AppLoading /> : <Navigation />;
+    return !this.state.fontsLoaded ? <AppLoading /> : <Navigation />;
   }
 }

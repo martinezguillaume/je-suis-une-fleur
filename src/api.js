@@ -1,4 +1,6 @@
 import axios from 'axios';
+import qs from 'qs';
+import split from 'lodash/split';
 
 const API_URL = 'https://identify.plantnet-project.org/api/';
 
@@ -43,6 +45,20 @@ export default {
       }),
   },
   organ: {
-    details: name => axios.get(`${API_URL}project/useful/get_species_details/${name}/fr`),
+    details: ({ name }) => axios.get(`${API_URL}project/useful/get_species_details/${name}/fr`),
+    description: ({ name }) => {
+      const splitName = split(name, ' ');
+      return axios.post(
+        'http://fr.wikipedia.org/w/api.php',
+        qs.stringify({
+          format: 'json',
+          action: 'query',
+          prop: 'extracts',
+          titles: `${splitName[0]} ${splitName[1]}`,
+          exintro: 1,
+          explaintext: 1,
+        })
+      );
+    },
   },
 };

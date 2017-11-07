@@ -1,4 +1,6 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+
 import { StyleSheet, Text } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -21,6 +23,9 @@ const ORGANS = {
   habit: {
     icon: '🌳',
   },
+  bark: {
+    icon: '🎸',
+  },
 };
 
 export default class OrganIcon extends React.PureComponent {
@@ -29,3 +34,8 @@ export default class OrganIcon extends React.PureComponent {
     return <Text style={[styles.organIcon, style]}>{ORGANS[organ].icon}</Text>;
   }
 }
+
+OrganIcon.propTypes = {
+  organ: PropTypes.string.isRequired,
+  style: PropTypes.any,
+};

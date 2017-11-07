@@ -1,5 +1,4 @@
 import { combineReducers } from 'redux';
-import { REHYDRATE } from 'redux-persist/constants';
 
 import camera from './camera/reducers';
 import nav from './navigation/reducers';
@@ -11,5 +10,5 @@ export default combineReducers({
   nav,
   organs,
   pictures,
-  storageLoaded: (state = false, action) => (action.type === REHYDRATE ? true : state),
+  storageLoaded: (state = false, action) => (action.type === 'persist/REHYDRATE' ? true : state),
 });

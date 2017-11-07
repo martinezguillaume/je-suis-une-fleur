@@ -57,8 +57,7 @@ const styles = StyleSheet.create({
 @withNavigation
 export default class ModalResults extends React.PureComponent {
   onPressItem = ({ name }) => {
-    const { navigation: { navigate }, setSelectedPicture } = this.props;
-    setSelectedPicture(null);
+    const { navigation: { navigate } } = this.props;
     navigate('Organ', { name });
   };
 

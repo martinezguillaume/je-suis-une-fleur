@@ -1,6 +1,7 @@
 import compose from 'recompose/compose';
 import lifecycle from 'recompose/lifecycle';
 import forEach from 'lodash/forEach';
+import get from 'lodash/get';
 
 export default requesters =>
   compose(
@@ -13,7 +14,7 @@ export default requesters =>
       },
       componentWillReceiveProps(nextProps) {
         forEach(requesters, (action, key) => {
-          const nextObject = nextProps[key];
+          const nextObject = get(nextProps, key);
           !nextObject.isLoading && !nextObject.isValid && action(this.props);
         });
       },

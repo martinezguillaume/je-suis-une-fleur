@@ -13,6 +13,17 @@ const homogenize = ({ fam, ...organ }) => ({
 
 function list(state = initialState.list, action) {
   switch (action.type) {
+    case 'setOrganDesc': {
+      const { organ, desc } = action;
+      const { name } = organ;
+      return {
+        ...state,
+        [name]: {
+          ...state[name],
+          desc: !desc || desc.length === 0 ? 'Aucune description.' : desc,
+        },
+      };
+    }
     case 'setOrgan': {
       const { organ } = action;
       const { name } = organ;
