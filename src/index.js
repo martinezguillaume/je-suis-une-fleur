@@ -1,11 +1,11 @@
-import React from 'react';
-import { AppLoading, Font } from 'expo';
-import Navigation from './navigation';
+import React from 'react'
+import { AppLoading, Font } from 'expo'
+import AppNavigator from './navigators/AppNavigator'
 
 export default class Root extends React.PureComponent {
   state = {
     fontsLoaded: false,
-  };
+  }
 
   componentDidMount() {
     Font.loadAsync({
@@ -23,10 +23,10 @@ export default class Root extends React.PureComponent {
       this.setState({
         fontsLoaded: true,
       })
-    );
+    )
   }
 
   render() {
-    return !this.state.fontsLoaded ? <AppLoading /> : <Navigation />;
+    return !this.state.fontsLoaded ? <AppLoading /> : <AppNavigator />
   }
 }

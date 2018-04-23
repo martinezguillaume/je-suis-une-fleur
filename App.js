@@ -1,20 +1,20 @@
-import React from 'react';
-import { StatusBar, UIManager } from 'react-native';
-import { Provider } from 'react-redux';
-import { AppLoading } from 'expo';
-import { PersistGate } from 'redux-persist/es/integration/react';
-import configureStore from './src/store';
+import React from 'react'
+import { StatusBar, UIManager } from 'react-native'
+import { Provider } from 'react-redux'
+import { AppLoading } from 'expo'
+import { PersistGate } from 'redux-persist/es/integration/react'
+import configureStore from './src/store'
 
-import Root from './src';
+import Root from './src'
 
-console.disableYellowBox = true;
+console.disableYellowBox = true
 
-StatusBar.setBarStyle('light-content');
+StatusBar.setBarStyle('light-content')
 
 UIManager.setLayoutAnimationEnabledExperimental &&
-  UIManager.setLayoutAnimationEnabledExperimental(true);
+  UIManager.setLayoutAnimationEnabledExperimental(true)
 
-const { store, persistor } = configureStore();
+const { store, persistor } = configureStore()
 
 export default class App extends React.Component {
   render() {
@@ -24,6 +24,6 @@ export default class App extends React.Component {
           <Root />
         </PersistGate>
       </Provider>
-    );
+    )
   }
 }

@@ -1,3 +1,6 @@
 module.exports = {
-  extends: 'universe/native',
-};
+  extends: 'expo/native',
+  globals: {
+    setTimeout: true,
+  },
+}

@@ -1,17 +1,17 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { Svg } from 'expo';
-import { Image, FlatList, StyleSheet, View, ScrollView } from 'react-native';
-import SvgAnimatedLinearGradient from 'react-native-svg-animated-linear-gradient';
-import map from 'lodash/map';
-import range from 'lodash/range';
+import React from 'react'
+import PropTypes from 'prop-types'
+import { Svg } from 'expo'
+import { Image, FlatList, StyleSheet, View, ScrollView } from 'react-native'
+import SvgAnimatedLinearGradient from 'react-native-svg-animated-linear-gradient'
+import map from 'lodash/map'
+import range from 'lodash/range'
 
-import OrganIcon from '../OrganIcon';
+import OrganIcon from './OrganIcon'
 
-const IMAGE_WIDTH = 80;
-const IMAGE_HEIGHT = 100;
-const IMAGE_BORDER_RADIUS = 6;
-const IMAGE_MARGIN = 4;
+const IMAGE_WIDTH = 80
+const IMAGE_HEIGHT = 100
+const IMAGE_BORDER_RADIUS = 6
+const IMAGE_MARGIN = 4
 
 const SkeletonImage = ({ x, y }) => (
   <Svg.Rect
@@ -22,7 +22,7 @@ const SkeletonImage = ({ x, y }) => (
     width={IMAGE_WIDTH}
     height={IMAGE_HEIGHT}
   />
-);
+)
 
 const Skeleton = (
   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -33,11 +33,11 @@ const Skeleton = (
       {map(range(6), i => <SkeletonImage key={i} x={(IMAGE_WIDTH + IMAGE_MARGIN) * i} y="0" />)}
     </SvgAnimatedLinearGradient>
   </ScrollView>
-);
+)
 
 export default class IconList extends React.PureComponent {
   render() {
-    const { data, organ, loading } = this.props;
+    const { data, organ, loading } = this.props
     return (
       <View style={styles.container}>
         <OrganIcon organ={organ} />
@@ -56,7 +56,7 @@ export default class IconList extends React.PureComponent {
           />
         )}
       </View>
-    );
+    )
   }
 }
 
@@ -64,7 +64,7 @@ IconList.propTypes = {
   organ: PropTypes.string.isRequired,
   loading: PropTypes.bool,
   data: PropTypes.array,
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -79,4 +79,4 @@ const styles = StyleSheet.create({
     marginRight: IMAGE_MARGIN,
     borderRadius: IMAGE_BORDER_RADIUS,
   },
-});
+})

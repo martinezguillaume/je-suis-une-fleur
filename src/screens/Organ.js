@@ -1,64 +1,84 @@
-import React from 'react';
-import { Svg } from 'expo';
-import { LayoutAnimation, WebView, Image, StyleSheet, Text, ScrollView, View } from 'react-native';
-import { Button } from 'react-native-elements';
-import { EvilIcons } from '@expo/vector-icons';
-import map from 'lodash/map';
-import join from 'lodash/join';
-import split from 'lodash/split';
-import SvgAnimatedLinearGradient from 'react-native-svg-animated-linear-gradient';
+import React from 'react'
+import { LayoutAnimation, WebView, Image, StyleSheet, Text, ScrollView, View } from 'react-native'
+import { Svg } from 'expo'
+import { Button } from 'react-native-elements'
+import { Ionicons } from '@expo/vector-icons'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import SvgAnimatedLinearGradient from 'react-native-svg-animated-linear-gradient'
+import values from 'lodash/values'
+import map from 'lodash/map'
+import join from 'lodash/join'
+import split from 'lodash/split'
 
-import TitleBox from '../../components/TitleBox';
-import IconList from '../../components/IconList';
-import { WIDTH, HEIGHT, BACKGROUND_COLOR, SUBHEADING_COLOR, BODY_COLOR } from '../../theme';
+import TitleBox from '../components/TitleBox'
+import IconList from '../components/IconList'
+import { withRequesters } from '../utils/decorators'
+import { WIDTH, HEIGHT, BACKGROUND_COLOR, SUBHEADING_COLOR, BODY_COLOR } from '../theme'
 
-const NameFamilySkeleton = (
-  <SvgAnimatedLinearGradient height={14} width={100} x2="180%">
-    <Svg.Rect x="0" y="0" rx="5" ry="5" width="100" height="14" />
-  </SvgAnimatedLinearGradient>
-);
-
-const SkeletonDescription = (
-  <SvgAnimatedLinearGradient height={(14 + 4) * 3} width={WIDTH - 64} x2="180%">
-    <Svg.Rect x="0" y="0" rx="5" ry="5" width={WIDTH - 64} height="14" />
-    <Svg.Rect x="0" y="18" rx="5" ry="5" width={WIDTH - 64} height="14" />
-    <Svg.Rect x="0" y="36" rx="5" ry="5" width={(WIDTH - 64) / 2} height="14" />
-  </SvgAnimatedLinearGradient>
-);
-
-const SkeletonCover = (
-  <SvgAnimatedLinearGradient height={100} width={WIDTH} x2="180%">
-    <Svg.Rect x="0" y="0" rx="0" ry="0" width={WIDTH} height="100" />
-  </SvgAnimatedLinearGradient>
-);
+import * as OrgansActions from '../redux/organs'
 
 const formatTitle = array => {
   if (array.length === 1) {
-    return array[0];
+    return array[0]
   }
-  const last = array.pop();
-  return `${join(array, ', ')} ou ${last}`;
-};
+  const last = array.pop()
+  return `${join(array, ', ')} ou ${last}`
+}
 
 const getWikipediaUrl = name => {
-  const splitName = split(name, ' ');
-  return `https://fr.wikipedia.org/wiki/${splitName[0]}_${splitName[1]}`;
-};
+  const splitName = split(name, ' ')
+  return `https://fr.wikipedia.org/wiki/${splitName[0]}_${splitName[1]}`
+}
 
+@connect(
+  ({ organs: { list, descList } }, { navigation }) => {
+    const {
+      state: {
+        params: { name },
+      },
+    } = navigation
+    const organ = list[name]
+    return {
+      cover: !organ
+        ? null
+        : organ.images
+          ? organ.images[0].m_url
+          : organ.imgs
+            ? values(organ.imgs)[0][0].full_img
+            : null,
+      organ: organ || { name },
+    }
+  },
+  dispatch => bindActionCreators(OrgansActions, dispatch)
+)
+@withRequesters({
+  organ: ({ requestOrgan, organ }) => requestOrgan(organ),
+})
 export default class Organ extends React.PureComponent {
+  render() {
+    const { organ, cover } = this.props
+    const { cn, desc, family, name } = organ
+    return (
+      <Template cover={cover} cn={cn} desc={desc} images={organ.imgs} family={family} name={name} />
+    )
+  }
+}
+
+class Template extends React.PureComponent {
   state = {
     webviewOpen: false,
-  };
+  }
 
   onMoreInfosPress = () => {
-    LayoutAnimation.easeInEaseOut();
-    this.setState({ webviewOpen: !this.state.webviewOpen });
-  };
+    LayoutAnimation.easeInEaseOut()
+    this.setState({ webviewOpen: !this.state.webviewOpen })
+  }
 
   render() {
-    const { family, name, images, desc, cn, cover } = this.props;
-    const { webviewOpen } = this.state;
-    const CoverComponent = cover ? Image : View;
+    const { family, name, images, desc, cn, cover } = this.props
+    const { webviewOpen } = this.state
+    const CoverComponent = cover ? Image : View
     return (
       <View flex={1} backgroundColor={BACKGROUND_COLOR}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -93,10 +113,10 @@ export default class Organ extends React.PureComponent {
           <WebView style={styles.webview} source={{ uri: getWikipediaUrl(name) }} />
         </View>
         <Button
-          textStyle={styles.moreInfos}
+          titleStyle={styles.moreInfos}
           buttonStyle={[styles.moreInfosButton, webviewOpen && styles.moreInfosButtonClose]}
-          text={webviewOpen ? '' : "PLUS D'INFOS"}
-          icon={webviewOpen && <EvilIcons name="close" color="white" size={30} />}
+          title={webviewOpen ? '' : "PLUS D'INFOS"}
+          icon={webviewOpen ? <Ionicons name="md-close" color="white" size={22} /> : null}
           onPress={this.onMoreInfosPress}
           containerStyle={styles.moreInfosContainer}
           linearGradientProps={{ colors: ['#64B5F6', '#2196F3'] }}
@@ -114,7 +134,7 @@ export default class Organ extends React.PureComponent {
           {cn && <Text style={styles.title}>{formatTitle(cn)}</Text>}
         </View>
       </View>
-    );
+    )
   }
 }
 
@@ -211,4 +231,24 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
   },
-});
+})
+
+const NameFamilySkeleton = (
+  <SvgAnimatedLinearGradient height={14} width={100} x2="180%">
+    <Svg.Rect x="0" y="0" rx="5" ry="5" width="100" height="14" />
+  </SvgAnimatedLinearGradient>
+)
+
+const SkeletonDescription = (
+  <SvgAnimatedLinearGradient height={(14 + 4) * 3} width={WIDTH - 64} x2="180%">
+    <Svg.Rect x="0" y="0" rx="5" ry="5" width={WIDTH - 64} height="14" />
+    <Svg.Rect x="0" y="18" rx="5" ry="5" width={WIDTH - 64} height="14" />
+    <Svg.Rect x="0" y="36" rx="5" ry="5" width={(WIDTH - 64) / 2} height="14" />
+  </SvgAnimatedLinearGradient>
+)
+
+const SkeletonCover = (
+  <SvgAnimatedLinearGradient height={100} width={WIDTH} x2="180%">
+    <Svg.Rect x="0" y="0" rx="0" ry="0" width={WIDTH} height="100" />
+  </SvgAnimatedLinearGradient>
+)
