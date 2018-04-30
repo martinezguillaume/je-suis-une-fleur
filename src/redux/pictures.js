@@ -36,21 +36,20 @@ export const setOrgansResults = (picture, results) => ({
   results,
 })
 
-export const fetchPictureResults = picture => {
-  return (dispatch, getState, api) =>
-    api.picture
-      .identify({
-        imgs: 'https://www.aquaportail.com/pictures1106/anemone-clown_1307889811-fleur.jpg',
-        tags: picture.organ,
-      })
-      .then(result => dispatch(setOrgansResults(picture, result.data.results)))
-  // api.picture.upload(picture).then(({ data: { base, map } }) => {
-  //   const imgs = `${base}${values(map)[0]}`
-  //   return api.picture
-  //     .identify({ imgs, tags: picture.organ })
-  //     .then(result => dispatch(setOrgansResults(picture, result.data.results)))
-  // })
-}
+export const fetchPictureResults = picture => (dispatch, getState, api) =>
+  api.picture
+    .identify({
+      imgs: 'https://www.aquaportail.com/pictures1106/anemone-clown_1307889811-fleur.jpg',
+      tags: picture.organ,
+    })
+    .then(result => dispatch(setOrgansResults(picture, result.data.results)))
+// api.picture.upload(picture).then(({ data: { base, map } }) => {
+//   const imgs = `${base}${values(map)[0]}`
+//   return api.picture
+//     .identify({ imgs, tags: picture.organ })
+//     .then(result => dispatch(setOrgansResults(picture, result.data.results)))
+// })
+
 export const addPicture = (organ, oldPicture) => {
   return (dispatch, getState, api) => {
     const {

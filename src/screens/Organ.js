@@ -218,6 +218,7 @@ const styles = StyleSheet.create({
   photosContainer: {
     height: 200,
     paddingBottom: 0,
+    paddingRight: 0,
   },
   webviewContainer: {
     top: HEIGHT,

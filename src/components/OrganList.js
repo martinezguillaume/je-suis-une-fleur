@@ -3,6 +3,7 @@ import { FlatList, ImageBackground, StyleSheet, Text, View } from 'react-native'
 import { withNavigation } from 'react-navigation'
 import identity from 'lodash/identity'
 
+import EmptyState from './EmptyState'
 import OrganListItem from './OrganListItem'
 
 @withNavigation
@@ -28,6 +29,9 @@ export default class OrganList extends React.PureComponent {
         </ImageBackground>
         <FlatList
           {...props}
+          ListEmptyComponent={
+            <EmptyState title="Aucun résultat" caption="Essayez avec une autre photo" />
+          }
           keyExtractor={identity}
           data={picture.results}
           renderItem={({ item }) => <OrganListItem name={item} onPress={this.onPressItem} />}

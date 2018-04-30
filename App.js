@@ -14,6 +14,11 @@ StatusBar.setBarStyle('light-content')
 UIManager.setLayoutAnimationEnabledExperimental &&
   UIManager.setLayoutAnimationEnabledExperimental(true)
 
+// if (process.env.NODE_ENV !== 'production') {
+//   const { whyDidYouUpdate } = require('why-did-you-update')
+//   whyDidYouUpdate(React)
+// }
+
 const { store, persistor } = configureStore()
 
 export default class App extends React.Component {

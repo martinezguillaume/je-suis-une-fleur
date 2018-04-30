@@ -8,25 +8,43 @@ import {
 } from 'react-native'
 import OrganIcon from './OrganIcon'
 
+export const getPictureHeightFromWidth = ({ height: pictureHeight, width: pictureWidth }, width) =>
+  pictureHeight * width / pictureWidth
+
+const ORGANICON_SIZE = 30
+
 export default class Picture extends React.PureComponent {
   render() {
     const {
       picture: { isLoading, uri, organ },
       onPress,
-      Component = onPress ? TouchableOpacity : View,
+      Component = onPress && !isLoading ? TouchableOpacity : View,
       containerStyle,
+      width,
       ...props
     } = this.props
     return (
-      <Component {...props} onPress={onPress} style={[styles.container, containerStyle]}>
-        <ImageBackground style={styles.picture} source={uri && { uri }} resizeMode="contain">
+      <Component
+        {...props}
+        onPress={onPress}
+        style={[
+          styles.container,
+          {
+            width,
+            height: width ? getPictureHeightFromWidth(this.props.picture, width) : null,
+          },
+          containerStyle,
+        ]}>
+        <ImageBackground style={styles.picture} source={uri && { uri }} resizeMode="cover">
           {isLoading && (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator />
+              <ActivityIndicator color="white" size="small" />
             </View>
           )}
         </ImageBackground>
-        {organ && <OrganIcon containerStyle={styles.organIcon} organ={organ} />}
+        {organ && (
+          <OrganIcon size={ORGANICON_SIZE} containerStyle={styles.organIcon} organ={organ} />
+        )}
       </Component>
     )
   }
@@ -34,8 +52,8 @@ export default class Picture extends React.PureComponent {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 16,
+    padding: ORGANICON_SIZE / 2,
+    position: 'relative',
   },
   loadingContainer: {
     flex: 1,
@@ -49,9 +67,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   organIcon: {
-    padding: 0,
     position: 'absolute',
-    top: 4,
-    right: 4,
+    top: 0,
+    right: 0,
+    padding: 0,
   },
 })

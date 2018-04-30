@@ -1,23 +1,30 @@
 import React from 'react'
-import { StyleSheet, TouchableOpacity, View, LayoutAnimation } from 'react-native'
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  LayoutAnimation,
+  Animated,
+  ScrollView,
+  FlatList,
+} from 'react-native'
 import { Permissions, Camera as ExpoCamera } from 'expo'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { Icon, Button } from 'react-native-elements'
-import { ScrollView, FlatList } from 'react-native-gesture-handler'
 import map from 'lodash/map'
 
 import * as picturesActions from '../redux/pictures'
 import OrganIcon from '../components/OrganIcon'
 import OrganList from '../components/OrganList'
-import Picture from '../components/Picture'
-import { HEIGHT, WIDTH } from '../theme'
+import Picture, { getPictureHeightFromWidth } from '../components/Picture'
+import { HEIGHT, WIDTH, SPACE_BOTTOM } from '../theme'
 
 const ORGANS = ['flower', 'fruit', 'leaf', 'habit']
 const MODAL_PADDING_VERTICAL = 50
 const MODAL_CLOSE_SIZE = 50
 const PICTURE_WIDTH = 106
-const PICTURE_HEIGHT = 166
+const ARROW_SIZE = 20
 
 @connect(
   ({ camera, pictures }) => ({
@@ -33,44 +40,72 @@ export default class Camera extends React.PureComponent {
     selectedPictureIndex: null,
     organ: 'flower',
     picture: null,
-    snapTerminated: false,
+    previewBottom: null,
+    isArrowVisible: this.props.pictures.list.length === 0,
   }
 
-  componentWillMount() {
-    Permissions.askAsync(Permissions.CAMERA).then(({ status }) =>
-      this.setState({
-        hasCameraPermission: status === 'granted',
-      })
+  scrollY = new Animated.Value(0)
+
+  componentDidMount() {
+    Permissions.askAsync(Permissions.CAMERA).then(
+      ({ status }) => status === 'granted' && this.setState({ hasCameraPermission: true })
     )
   }
 
   onPressCamera = () => {
     const { organ } = this.state
     const { addPicture } = this.props
-    this.camera.takePictureAsync().then(picture => {
-      this.setState({ picture })
-      setTimeout(() => {
-        LayoutAnimation.easeInEaseOut()
-        this.setState({ snapTerminated: true }, () => {
-          setTimeout(
-            () =>
-              LayoutAnimation.easeInEaseOut() ||
-              this.setState({ picture: null, snapTerminated: false }),
-            300
-          )
-          addPicture(organ, picture)
-        })
-      }, 300)
-    })
+    const scrollY = this.scrollY.__getValue()
+    this.refs.camera.takePictureAsync().then(
+      picture =>
+        LayoutAnimation.easeInEaseOut() ||
+        this.setState({ picture, previewBottom: null }, () =>
+          setTimeout(() => {
+            const pictureHeight = getPictureHeightFromWidth(picture, PICTURE_WIDTH)
+            LayoutAnimation.easeInEaseOut()
+            if (scrollY === 0) {
+              // If pictures are not displayed
+              this.setState({ previewBottom: 0 }, () =>
+                setTimeout(() => {
+                  LayoutAnimation.easeInEaseOut()
+                  this.setState({ previewBottom: -pictureHeight, isArrowVisible: true }, () =>
+                    setTimeout(
+                      () => LayoutAnimation.easeInEaseOut() || this.setState({ picture: null }),
+                      300
+                    )
+                  )
+                  addPicture(organ, picture)
+                }, 500)
+              )
+            } else {
+              // If pictures are displayed
+              this.setState(
+                {
+                  previewBottom: scrollY - pictureHeight,
+                  isArrowVisible: true,
+                },
+                () => {
+                  setTimeout(
+                    () => LayoutAnimation.easeInEaseOut() || this.setState({ picture: null }),
+                    300
+                  )
+                  addPicture(organ, picture)
+                },
+                300
+              )
+            }
+          }, 100)
+        )
+    )
   }
 
-  onPressOrgan = organ =>
-    LayoutAnimation.easeInEaseOut() ||
-    this.setState({ organ: organ || this.state.organ, organsVisible: !organ })
+  onPressSelectedOrgan = () =>
+    LayoutAnimation.easeInEaseOut() || this.setState({ organsVisible: true })
+
+  onPressOrgan = ({ organ }) =>
+    LayoutAnimation.easeInEaseOut() || this.setState({ organ, organsVisible: false })
 
   hideModal = () => LayoutAnimation.easeInEaseOut() || this.setState({ selectedPictureIndex: null })
-
-  renderOrganIcon = ({ organ, ...props }) => <OrganIcon key={organ} organ={organ} {...props} />
 
   render() {
     const {
@@ -79,56 +114,74 @@ export default class Camera extends React.PureComponent {
       organ,
       selectedPictureIndex,
       picture,
-      snapTerminated,
+      previewBottom,
+      isArrowVisible,
     } = this.state
     const { pictures } = this.props
-
-    return !hasCameraPermission ? (
-      <View />
-    ) : (
-      <ExpoCamera ref={ref => (this.camera = ref)} style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.cameraContainer}>
-            <View style={styles.buttonsContainer}>
-              <Icon
-                component={TouchableOpacity}
-                containerStyle={styles.cameraButton}
-                onPress={this.onPressCamera}
-                type="font-awesome"
-                name="circle-thin"
-                color="white"
-                size={60}
-              />
+    return !hasCameraPermission ? null : (
+      <View style={styles.container}>
+        <ExpoCamera ref="camera" style={styles.container}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            scrollEventThrottle={16}
+            onScroll={Animated.event([
+              {
+                nativeEvent: {
+                  contentOffset: {
+                    y: this.scrollY,
+                  },
+                },
+              },
+            ])}>
+            <View style={styles.cameraContainer}>
+              <View style={styles.cameraButtonsContainer}>
+                <OrganIcon organ={organ} onPress={this.onPressSelectedOrgan} />
+                <Icon
+                  component={TouchableOpacity}
+                  onPress={this.onPressCamera}
+                  type="font-awesome"
+                  name="circle-thin"
+                  color="white"
+                  size={60}
+                />
+                <View />
+              </View>
+              {organsVisible && (
+                <View style={styles.organsContainer}>
+                  {map(ORGANS, organ => (
+                    <OrganIcon
+                      organ={organ}
+                      onPress={this.onPressOrgan}
+                      containerStyle={styles.organContainer}
+                    />
+                  ))}
+                </View>
+              )}
+              {isArrowVisible && (
+                <Icon
+                  containerStyle={styles.arrowIcon}
+                  type="simple-line-icon"
+                  name="arrow-down"
+                  color="white"
+                  size={ARROW_SIZE}
+                />
+              )}
             </View>
-            <View style={organsVisible ? styles.organsContainer : styles.selectedOrgan}>
-              {!organsVisible
-                ? this.renderOrganIcon({
-                    organ,
-                    onPress: () => this.onPressOrgan(),
-                  })
-                : map(ORGANS, organ =>
-                    this.renderOrganIcon({
-                      organ,
-                      onPress: () => this.onPressOrgan(organ),
-                      containerStyle: styles.organContainer,
-                    })
-                  )}
-            </View>
-          </View>
-          <FlatList
-            keyExtractor={({ uri }) => uri}
-            data={pictures.list}
-            showsHorizontalScrollIndicator={false}
-            horizontal
-            renderItem={({ item }) => (
-              <Picture
-                picture={item}
-                containerStyle={styles.pictureContainer}
-                onPress={() => this.setState({ selectedPictureIndex: item.id })}
-              />
-            )}
-          />
-        </ScrollView>
+            <FlatList
+              keyExtractor={({ uri }) => uri}
+              data={pictures.list}
+              showsHorizontalScrollIndicator={false}
+              horizontal
+              renderItem={({ item }) => (
+                <Picture
+                  width={PICTURE_WIDTH}
+                  picture={item}
+                  onPress={() => this.setState({ selectedPictureIndex: item.id })}
+                />
+              )}
+            />
+          </ScrollView>
+        </ExpoCamera>
         {selectedPictureIndex != null && (
           <View style={styles.modalContainer}>
             <OrganList
@@ -145,21 +198,21 @@ export default class Camera extends React.PureComponent {
               }}
               icon={<Icon type="ionicon" name="md-close" color="white" />}
               onPress={this.hideModal}
-              linearGradientProps={{
-                colors: ['#F44336', '#FF6F00'],
-              }}
+              linearGradientProps={{ colors: ['#F44336', '#FF6F00'] }}
             />
           </View>
         )}
         {picture && (
           <Picture
+            width={previewBottom == null ? WIDTH : PICTURE_WIDTH}
             picture={picture}
-            containerStyle={
-              snapTerminated ? styles.picturePreviewTerminated : styles.picturePreview
-            }
+            containerStyle={[
+              previewBottom == null ? styles.bigPicturePreview : styles.picturePreview,
+              previewBottom !== null && { bottom: previewBottom },
+            ]}
           />
         )}
-      </ExpoCamera>
+      </View>
     )
   }
 }
@@ -174,32 +227,24 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    zIndex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     paddingHorizontal: 32,
     paddingVertical: MODAL_PADDING_VERTICAL,
   },
   cameraContainer: {
-    height: HEIGHT,
+    height: HEIGHT - SPACE_BOTTOM,
     justifyContent: 'flex-end',
+    marginBottom: SPACE_BOTTOM,
   },
-  buttonsContainer: {
+  cameraButtonsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
   },
-  cameraButton: {
-    backgroundColor: 'transparent',
-    padding: 8,
-  },
-  selectedOrgan: {
+  arrowIcon: {
     position: 'absolute',
-    padding: 8,
-    bottom: 14,
-    left: 16,
-  },
-  picturesListContainer: {
-    flexDirection: 'row',
+    height: ARROW_SIZE,
+    alignSelf: 'center',
   },
   organsContainer: {
     flexDirection: 'row',
@@ -208,22 +253,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   picturePreview: {
-    backgroundColor: 'red',
+    position: 'absolute',
+    left: 0,
+  },
+  bigPicturePreview: {
     padding: 0,
     ...StyleSheet.absoluteFillObject,
   },
-  picturePreviewTerminated: {
-    position: 'absolute',
-    bottom: 0,
-    width: PICTURE_WIDTH,
-    height: PICTURE_HEIGHT,
-  },
-  pictureContainer: {
-    width: PICTURE_WIDTH,
-    height: PICTURE_HEIGHT,
-  },
   closeButton: {
-    overflow: 'hidden',
     position: 'absolute',
     bottom: MODAL_PADDING_VERTICAL / 2,
     alignSelf: 'center',

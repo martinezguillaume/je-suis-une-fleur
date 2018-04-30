@@ -1,10 +1,20 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import {
+  Image,
+  FlatList,
+  StyleSheet,
+  View,
+  ScrollView,
+  Modal,
+  TouchableOpacity,
+} from 'react-native'
 import { Svg } from 'expo'
-import { Image, FlatList, StyleSheet, View, ScrollView } from 'react-native'
 import SvgAnimatedLinearGradient from 'react-native-svg-animated-linear-gradient'
+import ImageViewer from 'react-native-image-zoom-viewer'
 import map from 'lodash/map'
 import range from 'lodash/range'
+import isEmpty from 'lodash/isEmpty'
 
 import OrganIcon from './OrganIcon'
 
@@ -35,9 +45,50 @@ const Skeleton = (
   </ScrollView>
 )
 
-export default class IconList extends React.PureComponent {
+class ImageItem extends React.PureComponent {
+  onPress = () => this.props.onPress(this.props)
+
   render() {
-    const { data, organ, loading } = this.props
+    const { onPress, url } = this.props
+    return (
+      <TouchableOpacity onPress={onPress && this.onPress}>
+        <Image resizeMode="cover" style={styles.image} source={{ uri: url }} />
+      </TouchableOpacity>
+    )
+  }
+}
+
+export default class IconList extends React.PureComponent {
+  state = {
+    data: [],
+    viewerVisible: false,
+    viewerIndex: null,
+  }
+
+  static getDerivedStateFromProps = (nextProps, prevState) => {
+    const state = {}
+    nextProps.data &&
+      nextProps.data !== prevState.data &&
+      (state.data = nextProps.data.map(({ id, att, full_img, img }) => ({
+        key: `${id}-${att}`,
+        url: full_img,
+        small_url: img,
+      })))
+    return isEmpty(state) ? null : state
+  }
+
+  onSwipeDown = () => this.setState({ viewerVisible: false })
+
+  onPressItem = ({ index }) => this.setState({ viewerIndex: index, viewerVisible: true })
+
+  renderItem = ({ item: { small_url }, index }) => (
+    <ImageItem index={index} url={small_url} onPress={this.onPressItem} />
+  )
+
+  render() {
+    const { organ, loading, ...props } = this.props
+    const { data, viewerVisible, viewerIndex } = this.state
+    console.log(`viewerVisible`, viewerVisible)
     return (
       <View style={styles.container}>
         <OrganIcon organ={organ} />
@@ -46,15 +97,17 @@ export default class IconList extends React.PureComponent {
           Skeleton
         ) : (
           <FlatList
-            keyExtractor={({ id, att }) => `${id}-${att}`}
+            keyExtractor={({ key }) => key}
             horizontal
-            data={data}
             showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <Image resizeMode="cover" style={styles.image} source={{ uri: item.img }} />
-            )}
+            renderItem={this.renderItem}
+            {...props}
+            data={data}
           />
         )}
+        <Modal visible={viewerVisible} transparent>
+          <ImageViewer index={viewerIndex} onSwipeDown={this.onSwipeDown} imageUrls={data} />
+        </Modal>
       </View>
     )
   }

@@ -4,24 +4,16 @@ import PropTypes from 'prop-types'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const ORGANS = {
-  flower: {
-    icon: '🌸',
-  },
-  fruit: {
-    icon: '🍎',
-  },
-  leaf: {
-    icon: '🍁',
-  },
-  habit: {
-    icon: '🌳',
-  },
-  bark: {
-    icon: '🎸',
-  },
+  flower: '🌸',
+  fruit: '🍎',
+  leaf: '🍁',
+  habit: '🌳',
+  bark: '🎸',
 }
 
 export default class OrganIcon extends React.PureComponent {
+  onPress = () => this.props.onPress(this.props)
+
   render() {
     const {
       organ,
@@ -29,11 +21,15 @@ export default class OrganIcon extends React.PureComponent {
       onPress,
       containerStyle,
       Component = onPress ? TouchableOpacity : View,
+      size = 30,
       ...props
     } = this.props
     return (
-      <Component {...props} onPress={onPress} style={[styles.container, containerStyle]}>
-        <Text style={[styles.icon, style]}>{ORGANS[organ].icon}</Text>{' '}
+      <Component
+        {...props}
+        onPress={onPress && this.onPress}
+        style={[styles.container, containerStyle]}>
+        <Text style={[styles.icon, { fontSize: size }, style]}>{ORGANS[organ]}</Text>
       </Component>
     )
   }
@@ -54,6 +50,5 @@ const styles = StyleSheet.create({
   },
   icon: {
     backgroundColor: 'transparent',
-    fontSize: 30,
   },
 })
