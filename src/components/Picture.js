@@ -12,8 +12,11 @@ export const getPictureHeightFromWidth = ({ height: pictureHeight, width: pictur
   pictureHeight * width / pictureWidth
 
 const ORGANICON_SIZE = 30
+export const PADDING = ORGANICON_SIZE / 2
 
 export default class Picture extends React.PureComponent {
+  onPress = () => this.props.onPress(this.props)
+
   render() {
     const {
       picture: { isLoading, uri, organ },
@@ -21,17 +24,19 @@ export default class Picture extends React.PureComponent {
       Component = onPress && !isLoading ? TouchableOpacity : View,
       containerStyle,
       width,
+      height,
       ...props
     } = this.props
     return (
       <Component
         {...props}
-        onPress={onPress}
+        onPress={onPress && this.onPress}
         style={[
           styles.container,
           {
             width,
-            height: width ? getPictureHeightFromWidth(this.props.picture, width) : null,
+            height:
+              height || (width && getPictureHeightFromWidth(this.props.picture, width)) || null,
           },
           containerStyle,
         ]}>
@@ -52,7 +57,7 @@ export default class Picture extends React.PureComponent {
 
 const styles = StyleSheet.create({
   container: {
-    padding: ORGANICON_SIZE / 2,
+    padding: PADDING,
     position: 'relative',
   },
   loadingContainer: {

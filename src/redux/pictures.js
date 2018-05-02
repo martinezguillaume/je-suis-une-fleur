@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux'
 import map from 'lodash/map'
 import set from 'lodash/set'
+import values from 'lodash/values'
 
 const initialState = {
   list: [],
@@ -9,17 +10,14 @@ const initialState = {
 function list(state = initialState.list, action) {
   switch (action.type) {
     case 'addPicture':
-      return [{ ...action.picture, isLoading: true, isValid: false }, ...state]
+      return [...state, { ...action.picture, isLoading: true, isValid: false }]
     case 'setOrgansResults': {
-      const index = state.findIndex(({ id }) => id === action.picture.id)
-      return index === -1
-        ? state
-        : set([...state], index, {
-            ...state[index],
-            isLoading: false,
-            isValid: true,
-            results: map(action.results, organ => organ.name),
-          })
+      return set([...state], action.picture.id, {
+        ...state[action.picture.id],
+        isLoading: false,
+        isValid: true,
+        results: map(action.results, organ => organ.name),
+      })
     }
     default:
       return state

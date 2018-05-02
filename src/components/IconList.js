@@ -88,7 +88,6 @@ export default class IconList extends React.PureComponent {
   render() {
     const { organ, loading, ...props } = this.props
     const { data, viewerVisible, viewerIndex } = this.state
-    console.log(`viewerVisible`, viewerVisible)
     return (
       <View style={styles.container}>
         <OrganIcon organ={organ} />
@@ -105,7 +104,7 @@ export default class IconList extends React.PureComponent {
             data={data}
           />
         )}
-        <Modal visible={viewerVisible} transparent>
+        <Modal visible={viewerVisible} transparent animationType="slide">
           <ImageViewer index={viewerIndex} onSwipeDown={this.onSwipeDown} imageUrls={data} />
         </Modal>
       </View>

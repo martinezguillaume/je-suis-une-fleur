@@ -13,11 +13,15 @@ import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { Icon, Button } from 'react-native-elements'
 import map from 'lodash/map'
+import isEmpty from 'lodash/isEmpty'
 
 import * as picturesActions from '../redux/pictures'
 import OrganIcon from '../components/OrganIcon'
 import OrganList from '../components/OrganList'
-import Picture, { getPictureHeightFromWidth } from '../components/Picture'
+import Picture, {
+  getPictureHeightFromWidth,
+  PADDING as PICTURE_PADDING,
+} from '../components/Picture'
 import { HEIGHT, WIDTH, SPACE_BOTTOM } from '../theme'
 
 const ORGANS = ['flower', 'fruit', 'leaf', 'habit']
@@ -25,6 +29,8 @@ const MODAL_PADDING_VERTICAL = 50
 const MODAL_CLOSE_SIZE = 50
 const PICTURE_WIDTH = 106
 const ARROW_SIZE = 20
+
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity)
 
 @connect(
   ({ camera, pictures }) => ({
@@ -35,6 +41,7 @@ const ARROW_SIZE = 20
 )
 export default class Camera extends React.PureComponent {
   state = {
+    picturesList: [],
     hasCameraPermission: false,
     organsVisible: false,
     selectedPictureIndex: null,
@@ -43,8 +50,11 @@ export default class Camera extends React.PureComponent {
     previewBottom: null,
     isArrowVisible: this.props.pictures.list.length === 0,
   }
-
   scrollY = new Animated.Value(0)
+  previewWidth = new Animated.Value(WIDTH)
+  previewTranslateY = new Animated.Value(0)
+  previewOpacity = new Animated.Value(1)
+  timeout = null
 
   componentDidMount() {
     Permissions.askAsync(Permissions.CAMERA).then(
@@ -52,51 +62,58 @@ export default class Camera extends React.PureComponent {
     )
   }
 
-  onPressCamera = () => {
+  static getDerivedStateFromProps = (nextProps, prevState) => {
+    let state = {}
+    nextProps.pictures.list !== prevState.picturesList &&
+      (state.picturesList = [...nextProps.pictures.list].reverse())
+    LayoutAnimation.easeInEaseOut()
+    return isEmpty(state) ? null : state
+  }
+
+  clearPreviewAnimations = () => {
+    clearTimeout(this.timeout)
+    Animated.timing(this.previewWidth).stop()
+    Animated.timing(this.previewTranslateY).stop()
+    Animated.timing(this.previewOpacity).stop()
+    this.previewWidth.setValue(WIDTH)
+    this.previewTranslateY.setValue(0)
+    this.previewOpacity.setValue(1)
+  }
+
+  onPressCamera = async () => {
     const { organ } = this.state
     const { addPicture } = this.props
     const scrollY = this.scrollY.__getValue()
-    this.refs.camera.takePictureAsync().then(
-      picture =>
-        LayoutAnimation.easeInEaseOut() ||
-        this.setState({ picture, previewBottom: null }, () =>
-          setTimeout(() => {
-            const pictureHeight = getPictureHeightFromWidth(picture, PICTURE_WIDTH)
-            LayoutAnimation.easeInEaseOut()
-            if (scrollY === 0) {
-              // If pictures are not displayed
-              this.setState({ previewBottom: 0 }, () =>
-                setTimeout(() => {
-                  LayoutAnimation.easeInEaseOut()
-                  this.setState({ previewBottom: -pictureHeight, isArrowVisible: true }, () =>
-                    setTimeout(
-                      () => LayoutAnimation.easeInEaseOut() || this.setState({ picture: null }),
-                      300
-                    )
-                  )
-                  addPicture(organ, picture)
-                }, 500)
-              )
-            } else {
-              // If pictures are displayed
-              this.setState(
-                {
-                  previewBottom: scrollY - pictureHeight,
-                  isArrowVisible: true,
-                },
-                () => {
-                  setTimeout(
-                    () => LayoutAnimation.easeInEaseOut() || this.setState({ picture: null }),
-                    300
-                  )
-                  addPicture(organ, picture)
-                },
-                300
-              )
-            }
-          }, 100)
+    const preview = await this.refs.camera.takePictureAsync()
+    this.clearPreviewAnimations()
+    this.setState({ preview })
+    const PICTURE_HEIGHT = getPictureHeightFromWidth(preview, PICTURE_WIDTH)
+    if (scrollY === 0) {
+      Animated.timing(this.previewWidth, { toValue: PICTURE_WIDTH, duration: 400 }).start(
+        () =>
+          (this.timeout = setTimeout(() => {
+            addPicture(organ, preview)
+            Animated.timing(this.previewTranslateY, {
+              toValue: PICTURE_HEIGHT,
+              duration: 300,
+            }).start(() => this.setState({ preview: null }))
+          }, 300))
+      )
+    } else {
+      Animated.parallel([
+        Animated.timing(this.previewWidth, {
+          toValue: PICTURE_WIDTH,
+        }),
+        Animated.timing(this.previewTranslateY, {
+          toValue: PICTURE_HEIGHT - scrollY,
+        }),
+      ]).start(() =>
+        Animated.timing(this.previewOpacity, { toValue: 0, duration: 300 }).start(() =>
+          this.setState({ preview: null })
         )
-    )
+      )
+      addPicture(organ, preview)
+    }
   }
 
   onPressSelectedOrgan = () =>
@@ -107,14 +124,55 @@ export default class Camera extends React.PureComponent {
 
   hideModal = () => LayoutAnimation.easeInEaseOut() || this.setState({ selectedPictureIndex: null })
 
+  onPressPicture = ({ picture: { id } }) => this.setState({ selectedPictureIndex: id })
+
+  renderItemPicture = ({ item }) => (
+    <Picture width={PICTURE_WIDTH} picture={item} onPress={this.onPressPicture} />
+  )
+
+  renderPreview = preview => {
+    const PICTURE_HEIGHT = getPictureHeightFromWidth(preview, PICTURE_WIDTH)
+    const height = this.previewWidth.interpolate({
+      inputRange: [PICTURE_WIDTH, WIDTH],
+      outputRange: [PICTURE_HEIGHT, HEIGHT],
+      extrapolate: 'clamp',
+    })
+    const padding = this.previewWidth.interpolate({
+      inputRange: [PICTURE_WIDTH, WIDTH],
+      outputRange: [PICTURE_PADDING, 0],
+      extrapolate: 'clamp',
+    })
+    return (
+      <Picture
+        Component={AnimatedTouchableOpacity}
+        picture={preview}
+        containerStyle={{
+          width: this.previewWidth,
+          height,
+          padding,
+          position: 'absolute',
+          backgroundColor: 'red',
+          bottom: 0,
+          left: 0,
+          opacity: this.previewOpacity,
+          transform: [
+            {
+              translateY: this.previewTranslateY,
+            },
+          ],
+        }}
+      />
+    )
+  }
+
   render() {
     const {
+      picturesList,
       hasCameraPermission,
       organsVisible,
       organ,
       selectedPictureIndex,
-      picture,
-      previewBottom,
+      preview,
       isArrowVisible,
     } = this.state
     const { pictures } = this.props
@@ -169,16 +227,10 @@ export default class Camera extends React.PureComponent {
             </View>
             <FlatList
               keyExtractor={({ uri }) => uri}
-              data={pictures.list}
+              data={picturesList}
               showsHorizontalScrollIndicator={false}
               horizontal
-              renderItem={({ item }) => (
-                <Picture
-                  width={PICTURE_WIDTH}
-                  picture={item}
-                  onPress={() => this.setState({ selectedPictureIndex: item.id })}
-                />
-              )}
+              renderItem={this.renderItemPicture}
             />
           </ScrollView>
         </ExpoCamera>
@@ -202,16 +254,7 @@ export default class Camera extends React.PureComponent {
             />
           </View>
         )}
-        {picture && (
-          <Picture
-            width={previewBottom == null ? WIDTH : PICTURE_WIDTH}
-            picture={picture}
-            containerStyle={[
-              previewBottom == null ? styles.bigPicturePreview : styles.picturePreview,
-              previewBottom !== null && { bottom: previewBottom },
-            ]}
-          />
-        )}
+        {preview && this.renderPreview(preview)}
       </View>
     )
   }
@@ -255,6 +298,7 @@ const styles = StyleSheet.create({
   picturePreview: {
     position: 'absolute',
     left: 0,
+    backgroundColor: 'red',
   },
   bigPicturePreview: {
     padding: 0,

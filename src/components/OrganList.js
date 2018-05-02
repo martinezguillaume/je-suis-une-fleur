@@ -17,7 +17,7 @@ export default class OrganList extends React.PureComponent {
 
   render() {
     const { picture, contentContainerStyle, ...props } = this.props
-    const nbResults = picture.results.length
+    const nbResults = (picture.results && picture.results.length) || 0
     return (
       <View style={styles.container}>
         <ImageBackground source={{ uri: picture.uri }} style={styles.pictureCoverContainer}>

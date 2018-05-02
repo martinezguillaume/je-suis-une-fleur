@@ -1,6 +1,15 @@
 import React from 'react'
-import { LayoutAnimation, WebView, Image, StyleSheet, Text, ScrollView, View } from 'react-native'
-import { Svg } from 'expo'
+import {
+  LayoutAnimation,
+  WebView,
+  Animated,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  ScrollView,
+  View,
+} from 'react-native'
+import { Svg, Constants } from 'expo'
 import { Button } from 'react-native-elements'
 import { Ionicons } from '@expo/vector-icons'
 import { connect } from 'react-redux'
@@ -19,11 +28,11 @@ import { WIDTH, HEIGHT, BACKGROUND_COLOR, SUBHEADING_COLOR, BODY_COLOR } from '.
 import * as OrgansActions from '../redux/organs'
 
 const formatTitle = array => {
-  if (array.length === 1) {
-    return array[0]
-  }
-  const last = array.pop()
-  return `${join(array, ', ')} ou ${last}`
+  if (!array || array.length === 0) return ''
+  if (array.length === 1) return array[0]
+  const newArray = [...array]
+  const last = newArray.pop()
+  return `${join(newArray, ', ')} ou ${last}`
 }
 
 const getWikipediaUrl = name => {
@@ -42,7 +51,7 @@ const getWikipediaUrl = name => {
     return {
       cover: !organ
         ? null
-        : organ.images
+        : organ.images && organ.images.length !== 0
           ? organ.images[0].m_url
           : organ.imgs
             ? values(organ.imgs)[0][0].full_img
@@ -56,112 +65,106 @@ const getWikipediaUrl = name => {
   organ: ({ requestOrgan, organ }) => requestOrgan(organ),
 })
 export default class Organ extends React.PureComponent {
-  render() {
-    const { organ, cover } = this.props
-    const { cn, desc, family, name } = organ
-    return (
-      <Template cover={cover} cn={cn} desc={desc} images={organ.imgs} family={family} name={name} />
-    )
-  }
-}
-
-class Template extends React.PureComponent {
   state = {
     webviewOpen: false,
+    titleHeight: 0,
   }
+  coverBackgroundColor = new Animated.Value(1)
 
-  onMoreInfosPress = () => {
-    LayoutAnimation.easeInEaseOut()
-    this.setState({ webviewOpen: !this.state.webviewOpen })
-  }
+  onPressMoreInfos = () =>
+    LayoutAnimation.easeInEaseOut() || this.setState({ webviewOpen: !this.state.webviewOpen })
+
+  onLoadEndCover = () =>
+    Animated.timing(this.coverBackgroundColor, {
+      toValue: 0,
+    }).start()
+
+  onLayoutTitle = ({
+    nativeEvent: {
+      layout: { height },
+    },
+  }) => this.setState({ titleHeight: height })
 
   render() {
-    const { family, name, images, desc, cn, cover } = this.props
-    const { webviewOpen } = this.state
-    const CoverComponent = cover ? Image : View
+    const {
+      organ: { cn, desc, family, name, imgs },
+      cover,
+    } = this.props
+    const { webviewOpen, titleHeight } = this.state
+    const backgroundColor = this.coverBackgroundColor.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['transparent', BACKGROUND_COLOR],
+    })
+    const title = formatTitle(cn)
     return (
-      <View flex={1} backgroundColor={BACKGROUND_COLOR}>
-        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-          <TitleBox containerStyle={styles.nameFamilyBoxContainer}>
-            <View style={styles.familyNameContainer}>
-              <Text style={styles.subheading}>{'Name'}</Text>
-              {!name ? NameFamilySkeleton : <Text style={styles.body}>{name}</Text>}
-            </View>
-            <View style={styles.familyNameContainer}>
-              <Text style={styles.subheading}>{'Famille'}</Text>
-              {!family ? NameFamilySkeleton : <Text style={styles.body}>{family}</Text>}
-            </View>
-          </TitleBox>
-          <View height={16} />
-          <TitleBox containerStyle={styles.photosContainer} title="Photos">
-            <ScrollView>
-              {!images ? (
-                <IconList loading organ="flower" />
-              ) : (
-                map(images, (organImages, organ) => (
-                  <IconList key={organ} organ={organ} data={organImages} />
-                ))
-              )}
-            </ScrollView>
-          </TitleBox>
-          <View height={16} />
-          <TitleBox title="Description" body={desc}>
-            {!desc && SkeletonDescription}
-          </TitleBox>
-        </ScrollView>
-        <View style={[styles.webviewContainer, webviewOpen && styles.webviewOpen]}>
-          <WebView style={styles.webview} source={{ uri: getWikipediaUrl(name) }} />
-        </View>
-        <Button
-          titleStyle={styles.moreInfos}
-          buttonStyle={[styles.moreInfosButton, webviewOpen && styles.moreInfosButtonClose]}
-          title={webviewOpen ? '' : "PLUS D'INFOS"}
-          icon={webviewOpen ? <Ionicons name="md-close" color="white" size={22} /> : null}
-          onPress={this.onMoreInfosPress}
-          containerStyle={styles.moreInfosContainer}
-          linearGradientProps={{ colors: ['#64B5F6', '#2196F3'] }}
-        />
-        <View style={styles.header}>
-          {!cover ? (
-            SkeletonCover
-          ) : (
-            <CoverComponent
-              style={styles.cover}
-              source={cover && { uri: cover }}
-              resizeMode="cover"
-            />
-          )}
-          {cn && <Text style={styles.title}>{formatTitle(cn)}</Text>}
-        </View>
-      </View>
+      <ImageBackground
+        onLoadEnd={this.onLoadEndCover}
+        source={cover && { uri: cover }}
+        style={styles.container}
+        blurRadius={30}>
+        <Animated.View style={[styles.container, { backgroundColor }]}>
+          <ScrollView
+            contentContainerStyle={styles.contentContainer}
+            showsVerticalScrollIndicator={false}>
+            {title && (
+              <Text onLayout={this.onLayoutTitle} style={styles.title}>
+                {title}
+              </Text>
+            )}
+            <TitleBox containerStyle={styles.nameFamilyBoxContainer}>
+              <View style={styles.familyNameContainer}>
+                <Text style={styles.subheading}>{'Name'}</Text>
+                {!name ? NameFamilySkeleton : <Text style={styles.body}>{name}</Text>}
+              </View>
+              <View style={styles.familyNameContainer}>
+                <Text style={styles.subheading}>{'Famille'}</Text>
+                {!family ? NameFamilySkeleton : <Text style={styles.body}>{family}</Text>}
+              </View>
+            </TitleBox>
+            <View height={16} />
+            <TitleBox containerStyle={styles.photosContainer} title="Photos">
+              <ScrollView>
+                {!imgs ? (
+                  <IconList loading organ="flower" />
+                ) : (
+                  map(imgs, (organImages, organ) => (
+                    <IconList key={organ} organ={organ} data={organImages} />
+                  ))
+                )}
+              </ScrollView>
+            </TitleBox>
+            <View height={16} />
+            <TitleBox title="Description" body={desc}>
+              {!desc && SkeletonDescription}
+            </TitleBox>
+          </ScrollView>
+          <View style={[styles.webviewContainer, webviewOpen && { top: titleHeight }]}>
+            <WebView style={styles.webview} source={{ uri: getWikipediaUrl(name) }} />
+          </View>
+          <Button
+            titleStyle={styles.moreInfos}
+            buttonStyle={[styles.moreInfosButton, webviewOpen && styles.moreInfosButtonClose]}
+            title={webviewOpen ? '' : "PLUS D'INFOS"}
+            icon={webviewOpen ? <Ionicons name="md-close" color="white" size={22} /> : null}
+            onPress={this.onPressMoreInfos}
+            containerStyle={styles.moreInfosContainer}
+            linearGradientProps={{ colors: ['#64B5F6', '#2196F3'] }}
+          />
+        </Animated.View>
+      </ImageBackground>
     )
   }
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: BACKGROUND_COLOR,
+    flex: 1,
+    backgroundColor: 'green',
+  },
+  contentContainer: {
+    flex: 1,
     padding: 16,
-    paddingTop: 116,
-    paddingBottom: 76,
-  },
-  cover: {
-    height: 100,
-    width: WIDTH,
-    position: 'absolute',
-    top: 0,
-  },
-  header: {
-    position: 'absolute',
-    height: 100,
-    top: 0,
-    width: WIDTH,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    shadowColor: 'black',
-    shadowOffset: { height: 4, width: 0 },
-    shadowOpacity: 0.34,
-    shadowRadius: 10,
+    paddingTop: Constants.statusBarHeight,
   },
   title: {
     textShadowColor: 'rgba(0, 0, 0, 0.54)',
@@ -172,8 +175,7 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     fontSize: 20,
-    width: WIDTH,
-    paddingBottom: 2,
+    paddingBottom: 8,
   },
   nameFamilyBoxContainer: {
     flexDirection: 'row',
@@ -221,13 +223,14 @@ const styles = StyleSheet.create({
     paddingRight: 0,
   },
   webviewContainer: {
-    top: HEIGHT,
+    marginTop: Constants.statusBarHeight,
     position: 'absolute',
-    height: HEIGHT - 100,
-    width: WIDTH,
-  },
-  webviewOpen: {
-    top: 100,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    borderRadius: 6,
+    overflow: 'hidden',
+    margin: 16,
   },
   webview: {
     flex: 1,
