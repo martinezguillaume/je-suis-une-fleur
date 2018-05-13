@@ -21,11 +21,20 @@ import join from 'lodash/join'
 import split from 'lodash/split'
 
 import TitleBox from '../components/TitleBox'
-import IconList from '../components/IconList'
+import IconList, { IMAGE_HEIGHT } from '../components/IconList'
 import { withRequesters } from '../utils/decorators'
-import { WIDTH, HEIGHT, BACKGROUND_COLOR, SUBHEADING_COLOR, BODY_COLOR } from '../theme'
+import {
+  WIDTH,
+  BACKGROUND_COLOR,
+  SUBHEADING_COLOR,
+  BODY_COLOR,
+  SPACE_BOTTOM,
+  HEIGHT,
+} from '../theme'
 
 import * as OrgansActions from '../redux/organs'
+
+export const INFOS_BUTTONS_HEIGHT = 40
 
 const formatTitle = array => {
   if (!array || array.length === 0) return ''
@@ -138,7 +147,7 @@ export default class Organ extends React.PureComponent {
               {!desc && SkeletonDescription}
             </TitleBox>
           </ScrollView>
-          <View style={[styles.webviewContainer, webviewOpen && { top: titleHeight }]}>
+          <View style={[styles.webviewContainer, webviewOpen && styles.webviewContainerOpen]}>
             <WebView style={styles.webview} source={{ uri: getWikipediaUrl(name) }} />
           </View>
           <Button
@@ -162,9 +171,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'green',
   },
   contentContainer: {
-    flex: 1,
     padding: 16,
     paddingTop: Constants.statusBarHeight,
+    paddingBottom: SPACE_BOTTOM + 40 + 16,
   },
   title: {
     textShadowColor: 'rgba(0, 0, 0, 0.54)',
@@ -198,7 +207,7 @@ const styles = StyleSheet.create({
   },
   moreInfosContainer: {
     position: 'absolute',
-    bottom: 16,
+    bottom: SPACE_BOTTOM + 8,
     alignSelf: 'center',
     shadowColor: 'black',
     shadowOffset: { height: 4, width: 0 },
@@ -206,9 +215,9 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   moreInfosButton: {
-    height: 40,
-    borderRadius: 40,
+    height: INFOS_BUTTONS_HEIGHT,
     width: 150,
+    borderRadius: INFOS_BUTTONS_HEIGHT / 2,
   },
   moreInfosButtonClose: {
     width: 40,
@@ -218,22 +227,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   photosContainer: {
-    height: 200,
+    // height: 200,
     paddingBottom: 0,
     paddingRight: 0,
   },
   webviewContainer: {
-    marginTop: Constants.statusBarHeight,
+    paddingHorizontal: 16,
     position: 'absolute',
+    height: HEIGHT - Constants.statusBarHeight - SPACE_BOTTOM - INFOS_BUTTONS_HEIGHT / 2 - 8,
+    width: WIDTH,
+    top: HEIGHT,
     left: 0,
-    bottom: 0,
-    right: 0,
-    borderRadius: 6,
-    overflow: 'hidden',
-    margin: 16,
+  },
+  webviewContainerOpen: {
+    top: Constants.statusBarHeight,
   },
   webview: {
     flex: 1,
+    borderRadius: 6,
+    overflow: 'hidden',
   },
 })
 

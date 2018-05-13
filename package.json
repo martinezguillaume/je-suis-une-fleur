@@ -6,7 +6,8 @@
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "prettify": "prettier --print-width 100 --no-semi --single-quote --trailing-comma es5 --write src/**/*.js src/*.js",
+    "prettify":
+      "prettier --print-width 100 --no-semi --single-quote --trailing-comma es5 --write src/**/*.js src/*.js",
     "postinstall": "rndebugger-open --expo"
   },
   "dependencies": {
@@ -19,7 +20,7 @@
     "qs": "^6.5.1",
     "react": "16.3.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-27.0.0.tar.gz",
-    "react-native-elements": "^1.0.0-beta4",
+    "react-native-elements": "^1.0.0-beta5",
     "react-native-image-zoom-viewer": "^2.2.0",
     "react-native-svg-animated-linear-gradient": "^0.1.6",
     "react-navigation": "1.5.11",

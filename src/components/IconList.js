@@ -19,9 +19,9 @@ import isEmpty from 'lodash/isEmpty'
 import OrganIcon from './OrganIcon'
 
 const IMAGE_WIDTH = 80
-const IMAGE_HEIGHT = 100
+export const IMAGE_HEIGHT = 100
 const IMAGE_BORDER_RADIUS = 6
-const IMAGE_MARGIN = 4
+const IMAGE_MARGIN_HORIZONTAL = 4
 
 const SkeletonImage = ({ x, y }) => (
   <Svg.Rect
@@ -39,8 +39,10 @@ const Skeleton = (
     <SvgAnimatedLinearGradient
       x2="180%"
       height={IMAGE_HEIGHT}
-      width={(IMAGE_WIDTH + IMAGE_MARGIN) * 6}>
-      {map(range(6), i => <SkeletonImage key={i} x={(IMAGE_WIDTH + IMAGE_MARGIN) * i} y="0" />)}
+      width={(IMAGE_WIDTH + IMAGE_MARGIN_HORIZONTAL) * 6}>
+      {map(range(6), i => (
+        <SkeletonImage key={i} x={(IMAGE_WIDTH + IMAGE_MARGIN_HORIZONTAL) * i} y="0" />
+      ))}
     </SvgAnimatedLinearGradient>
   </ScrollView>
 )
@@ -127,8 +129,7 @@ const styles = StyleSheet.create({
   image: {
     width: IMAGE_WIDTH,
     height: IMAGE_HEIGHT,
-    marginLeft: IMAGE_MARGIN,
-    marginRight: IMAGE_MARGIN,
+    marginHorizontal: IMAGE_MARGIN_HORIZONTAL,
     borderRadius: IMAGE_BORDER_RADIUS,
   },
 })
