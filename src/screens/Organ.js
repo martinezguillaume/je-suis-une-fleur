@@ -88,18 +88,12 @@ export default class Organ extends React.PureComponent {
       toValue: 0,
     }).start()
 
-  onLayoutTitle = ({
-    nativeEvent: {
-      layout: { height },
-    },
-  }) => this.setState({ titleHeight: height })
-
   render() {
     const {
       organ: { cn, desc, family, name, imgs },
       cover,
     } = this.props
-    const { webviewOpen, titleHeight } = this.state
+    const { webviewOpen } = this.state
     const backgroundColor = this.coverBackgroundColor.interpolate({
       inputRange: [0, 1],
       outputRange: ['transparent', BACKGROUND_COLOR],
@@ -115,11 +109,7 @@ export default class Organ extends React.PureComponent {
           <ScrollView
             contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={false}>
-            {title && (
-              <Text onLayout={this.onLayoutTitle} style={styles.title}>
-                {title}
-              </Text>
-            )}
+            {title && <Text style={styles.title}>{title}</Text>}
             <TitleBox containerStyle={styles.nameFamilyBoxContainer}>
               <View style={styles.familyNameContainer}>
                 <Text style={styles.subheading}>{'Name'}</Text>
@@ -168,7 +158,6 @@ export default class Organ extends React.PureComponent {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'green',
   },
   contentContainer: {
     padding: 16,

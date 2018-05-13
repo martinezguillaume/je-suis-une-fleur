@@ -28,7 +28,6 @@ const ORGANS = ['flower', 'fruit', 'leaf', 'habit']
 const MODAL_PADDING_VERTICAL = 50
 const MODAL_CLOSE_SIZE = 50
 const PICTURE_WIDTH = 106
-const ARROW_SIZE = 20
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity)
 
@@ -48,15 +47,28 @@ export default class Camera extends React.PureComponent {
     organ: 'flower',
     picture: null,
     previewBottom: null,
-    isArrowVisible: this.props.pictures.list.length === 0,
+    isArrowVisible: this.props.pictures.list.length !== 0,
+    picturesHeight: 0,
+    endScrollView: false,
   }
   scrollY = new Animated.Value(0)
   previewWidth = new Animated.Value(WIDTH)
   previewTranslateY = new Animated.Value(0)
   previewOpacity = new Animated.Value(1)
+  arrowRotate = new Animated.Value(0)
   timeout = null
 
   componentDidMount() {
+    this.scrollY.addListener(({ value }) => {
+      const { picturesHeight, picturesList } = this.state
+      if (picturesList.length === 0) return
+      const endScrollView = value >= picturesHeight
+      Animated.timing(this.arrowRotate, {
+        toValue: endScrollView ? 1 : 0,
+        duration: 150,
+        useNativeDriver: true,
+      }).start(() => this.setState({ endScrollView }))
+    })
     Permissions.askAsync(Permissions.CAMERA).then(
       ({ status }) => status === 'granted' && this.setState({ hasCameraPermission: true })
     )
@@ -86,7 +98,7 @@ export default class Camera extends React.PureComponent {
     const scrollY = this.scrollY.__getValue()
     const preview = await this.refs.camera.takePictureAsync()
     this.clearPreviewAnimations()
-    this.setState({ preview })
+    this.setState({ preview, isArrowVisible: true })
     const PICTURE_HEIGHT = getPictureHeightFromWidth(preview, PICTURE_WIDTH)
     if (scrollY === 0) {
       Animated.timing(this.previewWidth, { toValue: PICTURE_WIDTH, duration: 400 }).start(
@@ -129,6 +141,19 @@ export default class Camera extends React.PureComponent {
   renderItemPicture = ({ item }) => (
     <Picture width={PICTURE_WIDTH} picture={item} onPress={this.onPressPicture} />
   )
+
+  onPressArrow = () =>
+    !this.state.endScrollView
+      ? this.refs.scrollView.scrollToEnd()
+      : this.refs.scrollView.scrollTo({ y: 0 })
+
+  onLayoutPicturesList = ({
+    nativeEvent: {
+      layout: { height },
+    },
+  }) => this.setState({ picturesHeight: height })
+
+  keyExtractorPicture = ({ uri }) => uri
 
   renderPreview = preview => {
     const PICTURE_HEIGHT = getPictureHeightFromWidth(preview, PICTURE_WIDTH)
@@ -180,6 +205,7 @@ export default class Camera extends React.PureComponent {
       <View style={styles.container}>
         <ExpoCamera ref="camera" style={styles.container}>
           <ScrollView
+            ref="scrollView"
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
             onScroll={Animated.event([
@@ -193,21 +219,50 @@ export default class Camera extends React.PureComponent {
             ])}>
             <View style={styles.cameraContainer}>
               <View style={styles.cameraButtonsContainer}>
-                <OrganIcon organ={organ} onPress={this.onPressSelectedOrgan} />
-                <Icon
-                  component={TouchableOpacity}
-                  onPress={this.onPressCamera}
-                  type="font-awesome"
-                  name="circle-thin"
-                  color="white"
-                  size={60}
-                />
+                <View style={{ flex: 1 }}>
+                  {isArrowVisible && (
+                    <Animated.View
+                      style={{
+                        transform: [
+                          {
+                            rotate: this.arrowRotate.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: ['0deg', '180deg'],
+                            }),
+                          },
+                        ],
+                      }}>
+                      <Icon
+                        component={TouchableOpacity}
+                        type="simple-line-icon"
+                        name="arrow-down"
+                        color="white"
+                        size={20}
+                        onPress={this.onPressArrow}
+                      />
+                    </Animated.View>
+                  )}
+                </View>
+                <View style={{ flex: 1, justifyContent: 'center' }}>
+                  <Icon
+                    component={TouchableOpacity}
+                    onPress={this.onPressCamera}
+                    type="font-awesome"
+                    name="circle-thin"
+                    color="white"
+                    size={60}
+                  />
+                </View>
+                <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+                  <OrganIcon organ={organ} onPress={this.onPressSelectedOrgan} />
+                </View>
                 <View />
               </View>
               {organsVisible && (
                 <View style={styles.organsContainer}>
                   {map(ORGANS, organ => (
                     <OrganIcon
+                      key={organ}
                       organ={organ}
                       onPress={this.onPressOrgan}
                       containerStyle={styles.organContainer}
@@ -215,23 +270,18 @@ export default class Camera extends React.PureComponent {
                   ))}
                 </View>
               )}
-              {isArrowVisible && (
-                <Icon
-                  containerStyle={styles.arrowIcon}
-                  type="simple-line-icon"
-                  name="arrow-down"
-                  color="white"
-                  size={ARROW_SIZE}
-                />
-              )}
             </View>
-            <FlatList
-              keyExtractor={({ uri }) => uri}
-              data={picturesList}
-              showsHorizontalScrollIndicator={false}
-              horizontal
-              renderItem={this.renderItemPicture}
-            />
+            {picturesList.length !== 0 && (
+              <FlatList
+                keyExtractor={this.keyExtractorPicture}
+                onLayout={this.onLayoutPicturesList}
+                contentContainerStyle={styles.picturesContainer}
+                data={picturesList}
+                showsHorizontalScrollIndicator={false}
+                horizontal
+                renderItem={this.renderItemPicture}
+              />
+            )}
           </ScrollView>
         </ExpoCamera>
         {selectedPictureIndex != null && (
@@ -275,25 +325,22 @@ const styles = StyleSheet.create({
     paddingVertical: MODAL_PADDING_VERTICAL,
   },
   cameraContainer: {
-    height: HEIGHT - SPACE_BOTTOM,
+    height: HEIGHT,
     justifyContent: 'flex-end',
-    marginBottom: SPACE_BOTTOM,
+    paddingBottom: SPACE_BOTTOM + 8,
   },
   cameraButtonsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  arrowIcon: {
-    position: 'absolute',
-    height: ARROW_SIZE,
-    alignSelf: 'center',
   },
   organsContainer: {
     flexDirection: 'row',
   },
   organContainer: {
     flex: 1,
+  },
+  picturesContainer: {
+    paddingBottom: SPACE_BOTTOM + 8,
   },
   picturePreview: {
     position: 'absolute',

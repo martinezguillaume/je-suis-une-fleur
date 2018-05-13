@@ -1,14 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import {
-  Image,
-  FlatList,
-  StyleSheet,
-  View,
-  ScrollView,
-  Modal,
-  TouchableOpacity,
-} from 'react-native'
+import { FlatList, StyleSheet, View, ScrollView, Modal, TouchableOpacity } from 'react-native'
 import { Svg } from 'expo'
 import SvgAnimatedLinearGradient from 'react-native-svg-animated-linear-gradient'
 import ImageViewer from 'react-native-image-zoom-viewer'
@@ -16,6 +8,7 @@ import map from 'lodash/map'
 import range from 'lodash/range'
 import isEmpty from 'lodash/isEmpty'
 
+import FadeInImage from './FadeInImage'
 import OrganIcon from './OrganIcon'
 
 const IMAGE_WIDTH = 80
@@ -53,9 +46,13 @@ class ImageItem extends React.PureComponent {
   render() {
     const { onPress, url } = this.props
     return (
-      <TouchableOpacity onPress={onPress && this.onPress}>
-        <Image resizeMode="cover" style={styles.image} source={{ uri: url }} />
-      </TouchableOpacity>
+      <FadeInImage
+        onPress={onPress && this.onPress}
+        placeholderStyle={styles.placeholderImage}
+        resizeMode="cover"
+        style={styles.image}
+        source={{ uri: url }}
+      />
     )
   }
 }
@@ -84,7 +81,9 @@ export default class IconList extends React.PureComponent {
   onPressItem = ({ index }) => this.setState({ viewerIndex: index, viewerVisible: true })
 
   renderItem = ({ item: { small_url }, index }) => (
-    <ImageItem index={index} url={small_url} onPress={this.onPressItem} />
+    <TouchableOpacity onPress={this.onPressItem}>
+      <ImageItem index={index} url={small_url} />
+    </TouchableOpacity>
   )
 
   render() {
@@ -131,5 +130,8 @@ const styles = StyleSheet.create({
     height: IMAGE_HEIGHT,
     marginHorizontal: IMAGE_MARGIN_HORIZONTAL,
     borderRadius: IMAGE_BORDER_RADIUS,
+  },
+  placeholderImage: {
+    backgroundColor: '#EEEEEE',
   },
 })
