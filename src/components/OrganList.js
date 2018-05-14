@@ -30,7 +30,14 @@ export default class OrganList extends React.PureComponent {
         <FlatList
           {...props}
           ListEmptyComponent={
-            <EmptyState title="Aucun résultat" caption="Essayez avec une autre photo" />
+            <EmptyState
+              icon={{
+                type: 'material-community',
+                name: 'flower',
+              }}
+              title="Aucun résultat"
+              caption="Essayez avec une autre photo"
+            />
           }
           keyExtractor={identity}
           data={picture.results}

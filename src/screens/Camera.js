@@ -176,7 +176,6 @@ export default class Camera extends React.PureComponent {
           height,
           padding,
           position: 'absolute',
-          backgroundColor: 'red',
           bottom: 0,
           left: 0,
           opacity: this.previewOpacity,
@@ -345,7 +344,6 @@ const styles = StyleSheet.create({
   picturePreview: {
     position: 'absolute',
     left: 0,
-    backgroundColor: 'red',
   },
   bigPicturePreview: {
     padding: 0,

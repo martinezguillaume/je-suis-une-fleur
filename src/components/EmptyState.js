@@ -2,7 +2,7 @@ import React from 'react'
 import { StyleSheet, View, Text } from 'react-native'
 import { Icon, normalize, Button } from 'react-native-elements'
 
-import { DARK_SECONDARY_COLOR, PRIMARY_COLOR, RED_COLOR } from '../theme'
+import { PRIMARY_GRAY, DARK_GRAY } from '../theme'
 
 export default class EmptyState extends React.PureComponent {
   render() {
@@ -13,7 +13,7 @@ export default class EmptyState extends React.PureComponent {
       caption,
       icon,
       button,
-      color = warning ? RED_COLOR : primary ? PRIMARY_COLOR : DARK_SECONDARY_COLOR,
+      color = warning ? RED_COLOR : primary ? PRIMARY_COLOR : PRIMARY_GRAY,
     } = this.props
     return (
       <View style={styles.container}>
@@ -65,13 +65,14 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
+    fontFamily: 'OpenSans-Regular',
     fontSize: normalize(16),
     opacity: 0.8,
   },
   caption: {
     marginTop: 8,
     fontSize: normalize(12),
-    color: DARK_SECONDARY_COLOR,
+    color: DARK_GRAY,
   },
   buttonContainer: {
     paddingTop: 32,
